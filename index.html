@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Miaomiaoshops</title>
+    <script>
+      window.global = window;
+      (function() {
+        try {
+          // Check if fetch is already writable on the window instance
+          const desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+          if (desc && desc.writable) return;
+
+          const existingFetch = window.fetch;
+          
+          // Try to delete it first to clear any prototype-level getters
+          try {
+            delete window.fetch;
+          } catch (e) {}
+
+          Object.defineProperty(window, 'fetch', {
+            value: existingFetch,
+            writable: true,
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          // Fallback: provide a safe setter/getter pair
+          try {
+            let _fetch = window.fetch;
+            Object.defineProperty(window, 'fetch', {
+              get: function() { return _fetch; },
+              set: function(v) { _fetch = v; },
+              configurable: true
+            });
+          } catch (innerE) {}
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Quicksand", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fredoka", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-bakery-pink: #FFB6C1;
+  --color-bakery-pink-light: #FFD1DC;
+  --color-bakery-blue: #AEC6CF;
+  --color-bakery-yellow: #FFFACD;
+  --color-bakery-cream: #FFFDD0;
+  --color-bakery-brown: #5C4033;
+  --color-bakery-mint: #98FF98;
+}
+
+@layer base {
+  body {
+    @apply bg-bakery-cream text-bakery-brown font-sans overflow-x-hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-wide;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(255, 182, 193, 0.4) 2px, transparent 2px),
+      linear-gradient(to bottom, rgba(255, 182, 193, 0.4) 2px, transparent 2px);
+    background-size: 40px 40px;
+  }
+  
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+}
