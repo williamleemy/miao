@@ -78,6 +78,11 @@ const PRODUCT_TWENTY_STYLE_OPTIONS = [
   '【8号】开盒确认款',
   '【整套8款】',
 ] as const;
+const PRODUCT_FIVE_STYLE_OPTIONS = [
+  'CP毛绒挂件 雨衣款',
+  '组合毛绒挂件 听音乐款',
+  '组合毛绒挂件 围巾款',
+] as const;
 const PRODUCT_ONE_STYLE_IMAGE_BY_LABEL: Record<(typeof PRODUCT_ONE_STYLE_OPTIONS)[number], string> = {
   '【床】已开盒确认款': '床.png',
   '【食物】已开盒确认款': '食物.png',
@@ -147,6 +152,11 @@ const PRODUCT_TWENTY_STYLE_IMAGE_BY_LABEL: Record<(typeof PRODUCT_TWENTY_STYLE_O
   '【8号】开盒确认款': 'last.png',
   '【整套8款】': '【整套8款】.png',
 };
+const PRODUCT_FIVE_STYLE_IMAGE_BY_LABEL: Record<(typeof PRODUCT_FIVE_STYLE_OPTIONS)[number], string> = {
+  'CP毛绒挂件 雨衣款': 'main.png',
+  '组合毛绒挂件 听音乐款': '2.png',
+  '组合毛绒挂件 围巾款': '3.png',
+};
 const PRODUCT_TWENTY_STYLE_PRICE_BY_LABEL: Record<
   (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number],
   { beforeMyr: number; afterMyr: number }
@@ -213,6 +223,17 @@ const PRODUCT_FOUR_STYLE_PRICE_BY_LABEL: Record<
   '【8号】已开盒确认款/未拆袋': { beforeMyr: 70, afterMyr: 60 },
   '一套8款': { beforeMyr: 259, afterMyr: 239 },
 };
+const PRODUCT_FIVE_STYLE_PRICE_BY_LABEL: Record<
+  (typeof PRODUCT_FIVE_STYLE_OPTIONS)[number],
+  { beforeMyr: number; afterMyr: number }
+> = {
+  'CP毛绒挂件 雨衣款': { beforeMyr: 79, afterMyr: 69 },
+  '组合毛绒挂件 听音乐款': { beforeMyr: 79, afterMyr: 65 },
+  '组合毛绒挂件 围巾款': { beforeMyr: 80, afterMyr: 60 },
+};
+const PRODUCT_FIVE_SOLD_OUT_OPTIONS = new Set<(typeof PRODUCT_FIVE_STYLE_OPTIONS)[number]>([
+  'CP毛绒挂件 雨衣款',
+]);
 
 const PURCHASE_OPTIONS: Record<
   PurchaseOptionKey,
@@ -304,6 +325,8 @@ export default function ProductDetail() {
   // Prefer local gallery images from product folder.
   const productGallerySuffixes = productFolder === 'Pingu MINI MEME'
     ? ['1', '2', '3', 'last']
+    : productFolder === '线条小狗毛绒挂件'
+      ? ['2', '3']
     : productFolder === '微缩场景狗狗'
       ? ['床', '食物', '卫生', '玩具', '牵引绳', '刷子', '手推车', '桌子', '一套8款', 'last']
     : productFolder === '微缩场景猫'
@@ -321,9 +344,9 @@ export default function ProductDetail() {
     id === '23' && productFolder && purchaseOption
       ? `/products/${encodeURIComponent(productFolder)}/${purchaseOption === 'blind' ? 'duo-fishing.png' : 'duo-raincoat.png'}`
       : null;
-  const productImageVersionSuffix = id === '14' ? '?v=20260430' : id === '3' ? '?v=20260502' : '';
+  const productImageVersionSuffix = id === '14' ? '?v=20260430' : id === '3' ? '?v=20260502' : id === '5' ? '?v=20260502-r2' : '';
   const resolvedMainImage =
-    (id === '14' || id === '3') && productFolder
+    (id === '14' || id === '3' || id === '5') && productFolder
       ? `/products/${encodeURIComponent(productFolder)}/main.png${productImageVersionSuffix}`
       : product?.imageUrl;
   const productImages = product
@@ -366,7 +389,8 @@ export default function ProductDetail() {
   const isStrawberryCafeProduct = product.id === '10';
   const isBurgerSampleProduct = product.id === '14';
   const isMiffyCafeProduct = product.id === '20';
-  const isCustomStyleProduct = isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct;
+  const isLineDogPlushPendantProduct = product.id === '5';
+  const isCustomStyleProduct = isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isLineDogPlushPendantProduct;
   const customStyleOptions = isPetDogMiniSceneProduct
     ? PRODUCT_ONE_STYLE_OPTIONS
     : isPetCatMiniSceneProduct
@@ -377,6 +401,8 @@ export default function ProductDetail() {
           ? PRODUCT_FOURTEEN_STYLE_OPTIONS
           : isMiffyCafeProduct
             ? PRODUCT_TWENTY_STYLE_OPTIONS
+            : isLineDogPlushPendantProduct
+              ? PRODUCT_FIVE_STYLE_OPTIONS
         : [];
   const customStyleImageByLabel: Record<string, string> = isPetDogMiniSceneProduct
     ? PRODUCT_ONE_STYLE_IMAGE_BY_LABEL
@@ -388,6 +414,8 @@ export default function ProductDetail() {
           ? PRODUCT_FOURTEEN_STYLE_IMAGE_BY_LABEL
           : isMiffyCafeProduct
             ? PRODUCT_TWENTY_STYLE_IMAGE_BY_LABEL
+            : isLineDogPlushPendantProduct
+              ? PRODUCT_FIVE_STYLE_IMAGE_BY_LABEL
       : {};
   const isSiamFridgeMagnetBlindBagProduct = product.id === '3';
   const hasTwoOptions = (isPinguSeriesProduct || product.id === '6' || isSiamFridgeMagnetBlindBagProduct) && !isPinguCameraBagProduct;
@@ -440,7 +468,9 @@ export default function ProductDetail() {
     ((isStrawberryCafeProduct &&
       PRODUCT_TEN_SOLD_OUT_OPTIONS.has(selectedCustomStyle as (typeof PRODUCT_TEN_STYLE_OPTIONS)[number])) ||
       (isMiffyCafeProduct &&
-        PRODUCT_TWENTY_SOLD_OUT_OPTIONS.has(selectedCustomStyle as (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number])));
+        PRODUCT_TWENTY_SOLD_OUT_OPTIONS.has(selectedCustomStyle as (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number])) ||
+      (isLineDogPlushPendantProduct &&
+        PRODUCT_FIVE_SOLD_OUT_OPTIONS.has(selectedCustomStyle as (typeof PRODUCT_FIVE_STYLE_OPTIONS)[number])));
   const canAddToCart = hasTwoOptions ? !!selectedPurchase : (isCustomStyleProduct ? (!!selectedCustomStyle && !isSoldOutSelected) : true);
   const optionPriceList = hasTwoOptions ? Object.values(purchaseOptionsForProduct) : [];
   const cheapestOptionMyr =
@@ -465,9 +495,11 @@ export default function ProductDetail() {
                 ? PRODUCT_FOURTEEN_STYLE_PRICE_BY_LABEL[selectedCustomStyle as (typeof PRODUCT_FOURTEEN_STYLE_OPTIONS)[number]]
             : isMiffyCafeProduct
               ? PRODUCT_TWENTY_STYLE_PRICE_BY_LABEL[selectedCustomStyle as (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number]]
+              : isLineDogPlushPendantProduct
+                ? PRODUCT_FIVE_STYLE_PRICE_BY_LABEL[selectedCustomStyle as (typeof PRODUCT_FIVE_STYLE_OPTIONS)[number]]
               : null)
       : null;
-  const customCheapestPricing = (isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct)
+  const customCheapestPricing = (isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isLineDogPlushPendantProduct)
     ? Object.values(
         isPetDogMiniSceneProduct
           ? PRODUCT_ONE_STYLE_PRICE_BY_LABEL
@@ -477,7 +509,9 @@ export default function ProductDetail() {
               ? PRODUCT_TEN_STYLE_PRICE_BY_LABEL
               : isBurgerSampleProduct
                 ? PRODUCT_FOURTEEN_STYLE_PRICE_BY_LABEL
-                : PRODUCT_TWENTY_STYLE_PRICE_BY_LABEL
+                : isMiffyCafeProduct
+                  ? PRODUCT_TWENTY_STYLE_PRICE_BY_LABEL
+                  : PRODUCT_FIVE_STYLE_PRICE_BY_LABEL
       ).reduce(
         (min, option) => ({
           beforeMyr: Math.min(min.beforeMyr, option.beforeMyr),
@@ -1283,6 +1317,8 @@ export default function ProductDetail() {
               ? PRODUCT_FOURTEEN_STYLE_PRICE_BY_LABEL[selectedCustomStyle as (typeof PRODUCT_FOURTEEN_STYLE_OPTIONS)[number]]
             : isMiffyCafeProduct
               ? PRODUCT_TWENTY_STYLE_PRICE_BY_LABEL[selectedCustomStyle as (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number]]
+            : isLineDogPlushPendantProduct
+              ? PRODUCT_FIVE_STYLE_PRICE_BY_LABEL[selectedCustomStyle as (typeof PRODUCT_FIVE_STYLE_OPTIONS)[number]]
           : null;
       addItem({
         ...product,
@@ -1634,7 +1670,9 @@ export default function ProductDetail() {
                             (isStrawberryCafeProduct &&
                               PRODUCT_TEN_SOLD_OUT_OPTIONS.has(style as (typeof PRODUCT_TEN_STYLE_OPTIONS)[number])) ||
                             (isMiffyCafeProduct &&
-                              PRODUCT_TWENTY_SOLD_OUT_OPTIONS.has(style as (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number]));
+                              PRODUCT_TWENTY_SOLD_OUT_OPTIONS.has(style as (typeof PRODUCT_TWENTY_STYLE_OPTIONS)[number])) ||
+                            (isLineDogPlushPendantProduct &&
+                              PRODUCT_FIVE_SOLD_OUT_OPTIONS.has(style as (typeof PRODUCT_FIVE_STYLE_OPTIONS)[number]));
                           return (
                             <button
                               key={style}
