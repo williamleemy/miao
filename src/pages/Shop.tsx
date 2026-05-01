@@ -104,6 +104,9 @@ export default function Shop() {
   const isLimited = activeTag === 'Limited';
 
   const getBannerConfig = () => {
+    const pinguSeriesBanner = encodeURI('/banners/banner1/pingu 系列ads/ChatGPT Image May 1, 2026, 12_34_29 AM.png');
+    const allProductsBanner = encodeURI('/banners/所有产品banner/ads/ChatGPT Image May 1, 2026, 11_59_22 PM.png');
+
     if (isBestSeller) {
       return {
         title: t('shop.bestSellerTitle'),
@@ -140,11 +143,25 @@ export default function Shop() {
         badgeIcon: <TrendingUp className="h-4 w-4" />
       };
     }
+    if (activeCategory === 'Pingu') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: pinguSeriesBanner,
+        rightImg: pinguSeriesBanner,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
     // Default for categories or "All"
     return {
       title: activeCategory === 'All' ? t('nav.allProducts') : getCategoryName(activeCategory),
       subtitle: t('shop.subtitle'),
-      leftImg: "https://images.unsplash.com/photo-1558060370-d64111d20163?auto=format&fit=crop&q=80&w=1600",
+      leftImg: activeCategory === 'All'
+        ? allProductsBanner
+        : "https://images.unsplash.com/photo-1558060370-d64111d20163?auto=format&fit=crop&q=80&w=1600",
       rightImg: "https://images.unsplash.com/photo-1596461404969-9ce20f71881b?auto=format&fit=crop&q=80&w=1600",
       bgColor: 'bg-bakery-pink-light/30',
       borderColor: 'border-bakery-pink-light',
@@ -163,7 +180,7 @@ export default function Shop() {
         <BannerBoard 
           src={banner.leftImg}
           alt="Shop Banner"
-          aspectRatio="aspect-[21/8] md:aspect-[21/7]"
+          aspectRatio="aspect-[1913/822] md:aspect-[1913/822]"
           className="mb-12"
         />
       </div>
@@ -267,7 +284,7 @@ export default function Shop() {
                         (e.target as HTMLImageElement).src = product.fallbackImage;
                       }}
                       alt={product.name.en} 
-                      className="w-full h-full object-cover mix-blend-multiply"
+                      className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold text-bakery-brown shadow-sm">

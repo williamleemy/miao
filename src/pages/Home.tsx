@@ -202,51 +202,79 @@ export default function Home() {
 }
 
 function HeroCarousel() {
+  const AUTO_PLAY_MS = 10000;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isInteracting, setIsInteracting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
+  const isAutoScrolling = useRef(false);
+  const autoScrollUnlockTimerRef = useRef<number | null>(null);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+
+  const homeBannerPath = encodeURI('/banners/banner1/ad/ChatGPT Image May 1, 2026, 12_14_21 AM.png');
+  const homeBannerPath2 = encodeURI('/banners/banner2/ad/ChatGPT Image May 1, 2026, 01_09_24 AM.png');
+  const homeBannerPath3 = encodeURI('/banners/banner3/ad/ChatGPT Image May 1, 2026, 01_45_03 AM.png');
 
   const BANNERS = [
-    '/banners/banner1.jpg',
-    '/banners/banner2.jpg',
-    '/banners/banner3.jpg',
+    homeBannerPath,
+    homeBannerPath2,
+    homeBannerPath3,
+  ];
+
+  const bannerLinks: Array<string | null> = [
+    '/shop?category=Pingu',
+    '/shop?category=SpongeBob',
+    '/shop?category=Manor',
   ];
 
   const FALLBACK_BANNERS = [
-    'https://images.unsplash.com/photo-1558060370-d64111d20163?auto=format&fit=crop&q=80&w=1600&h=600',
-    'https://images.unsplash.com/photo-1596461404969-9ce20f71881b?auto=format&fit=crop&q=80&w=1600&h=600',
-    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=1600&h=600',
+    homeBannerPath,
+    homeBannerPath2,
+    homeBannerPath3,
   ];
 
-  const startAutoPlay = () => {
-    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-    autoPlayRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % BANNERS.length);
-    }, 10000);
-  };
-
   useEffect(() => {
-    startAutoPlay();
+    if (BANNERS.length <= 1 || isInteracting) return;
+
+    const timer = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % BANNERS.length);
+    }, AUTO_PLAY_MS);
+
     return () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+      window.clearInterval(timer);
     };
-  }, []);
+  }, [BANNERS.length, isInteracting]);
 
   useEffect(() => {
     if (scrollRef.current && !isDragging.current) {
       const scrollWidth = scrollRef.current.clientWidth;
+      isAutoScrolling.current = true;
       scrollRef.current.scrollTo({
         left: currentIndex * scrollWidth,
         behavior: 'smooth'
       });
+
+      if (autoScrollUnlockTimerRef.current) {
+        window.clearTimeout(autoScrollUnlockTimerRef.current);
+      }
+      autoScrollUnlockTimerRef.current = window.setTimeout(() => {
+        isAutoScrolling.current = false;
+      }, 500);
     }
   }, [currentIndex]);
 
+  useEffect(() => {
+    return () => {
+      if (autoScrollUnlockTimerRef.current) {
+        window.clearTimeout(autoScrollUnlockTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleScroll = () => {
     if (scrollRef.current && !isDragging.current) {
+      if (isAutoScrolling.current) return;
       const scrollWidth = scrollRef.current.clientWidth;
       const newIndex = Math.round(scrollRef.current.scrollLeft / scrollWidth);
       if (newIndex !== currentIndex) {
@@ -257,7 +285,7 @@ function HeroCarousel() {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDragging.current = true;
-    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    setIsInteracting(true);
     if (scrollRef.current) {
       scrollRef.current.style.scrollBehavior = 'auto';
       scrollRef.current.classList.remove('snap-x');
@@ -279,7 +307,7 @@ function HeroCarousel() {
           behavior: 'smooth'
         });
       }
-      startAutoPlay();
+      setIsInteracting(false);
     }
   };
 
@@ -296,7 +324,7 @@ function HeroCarousel() {
           behavior: 'smooth'
         });
       }
-      startAutoPlay();
+      setIsInteracting(false);
     }
   };
 
@@ -306,6 +334,14 @@ function HeroCarousel() {
     const x = e.pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX.current) * 2;
     scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+
+  const handleTouchStart = () => {
+    setIsInteracting(true);
+  };
+
+  const handleTouchEnd = () => {
+    setIsInteracting(false);
   };
 
   return (
@@ -322,20 +358,37 @@ function HeroCarousel() {
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
           style={{ scrollBehavior: 'smooth' }}
         >
           {BANNERS.map((banner, index) => (
             <div key={index} className="w-full h-full flex-shrink-0 snap-center relative">
-              <img 
-                src={banner} 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
-                }}
-                alt={`Banner ${index + 1}`} 
-                className="w-full h-full object-cover pointer-events-none"
-                referrerPolicy="no-referrer"
-              />
+              {bannerLinks[index] ? (
+                <Link to={bannerLinks[index]} className="block w-full h-full">
+                  <img
+                    src={banner}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
+                    }}
+                    alt={`Banner ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </Link>
+              ) : (
+                <img
+                  src={banner}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
+                  }}
+                  alt={`Banner ${index + 1}`}
+                  className="w-full h-full object-cover pointer-events-none"
+                  referrerPolicy="no-referrer"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
             </div>
           ))}
@@ -348,7 +401,6 @@ function HeroCarousel() {
               key={index}
               onClick={() => {
                 setCurrentIndex(index);
-                startAutoPlay();
               }}
               className={`w-3 h-3 md:w-4 md:h-4 rounded-full transition-all ${index === currentIndex ? 'bg-white scale-125 shadow-md' : 'bg-white/50 hover:bg-white/80'}`}
             />

@@ -14,8 +14,21 @@
 }
 
 @layer base {
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
   body {
     @apply bg-bakery-cream text-bakery-brown font-sans overflow-x-hidden;
+  }
+  @media (max-width: 767px) {
+    body {
+      overflow: hidden;
+    }
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-wide;
@@ -29,6 +42,49 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+  }
+
+  @media (max-width: 767px) {
+    .app-shell {
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-scroll-area {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .app-scroll-area::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    box-sizing: border-box;
+    height: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    isolation: isolate;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
   }
   
   .bg-grid-pattern {

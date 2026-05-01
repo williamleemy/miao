@@ -321,9 +321,9 @@ export default function ProductDetail() {
     id === '23' && productFolder && purchaseOption
       ? `/products/${encodeURIComponent(productFolder)}/${purchaseOption === 'blind' ? 'duo-fishing.png' : 'duo-raincoat.png'}`
       : null;
-  const productImageVersionSuffix = id === '14' ? '?v=20260430' : '';
+  const productImageVersionSuffix = id === '14' ? '?v=20260430' : id === '3' ? '?v=20260502' : '';
   const resolvedMainImage =
-    id === '14' && productFolder
+    (id === '14' || id === '3') && productFolder
       ? `/products/${encodeURIComponent(productFolder)}/main.png${productImageVersionSuffix}`
       : product?.imageUrl;
   const productImages = product
@@ -389,7 +389,8 @@ export default function ProductDetail() {
           : isMiffyCafeProduct
             ? PRODUCT_TWENTY_STYLE_IMAGE_BY_LABEL
       : {};
-  const hasTwoOptions = (isPinguSeriesProduct || product.id === '6') && !isPinguCameraBagProduct;
+  const isSiamFridgeMagnetBlindBagProduct = product.id === '3';
+  const hasTwoOptions = (isPinguSeriesProduct || product.id === '6' || isSiamFridgeMagnetBlindBagProduct) && !isPinguCameraBagProduct;
   const isSquidwardSeriesProduct = product.id === '6';
   const purchaseOptionsForProduct: Record<PurchaseOptionKey, { cartIdSuffix: string; label: { en: string; cn: string }; beforeMyr: number; afterMyr: number }> =
     isSquidwardSeriesProduct
@@ -412,6 +413,23 @@ export default function ProductDetail() {
             label: { en: 'Raincoat Pingu & Pinga', cn: '雨衣pingu&pinga' },
             beforeMyr: 69.9,
             afterMyr: 55.9,
+          },
+        }
+      : isSiamFridgeMagnetBlindBagProduct
+      ? {
+          blind: {
+            ...PURCHASE_OPTIONS.blind,
+            cartIdSuffix: 'random-blind-bag-1',
+            label: { en: 'Random blind bag 1 pc', cn: '随机盲袋1个' },
+            beforeMyr: 30,
+            afterMyr: 23,
+          },
+          boxed: {
+            ...PURCHASE_OPTIONS.boxed,
+            cartIdSuffix: 'full-case-12',
+            label: { en: 'Full case 12 pcs', cn: '端盒 12个' },
+            beforeMyr: 170,
+            afterMyr: 149,
           },
         }
       : PURCHASE_OPTIONS;
@@ -513,6 +531,7 @@ export default function ProductDetail() {
   const generatedReviewCount = Number.isFinite(numericProductId) ? 80 + ((numericProductId * 17) % 260) : 147;
   const totalReviews = isPinguMiniTheaterProduct ? 17 : generatedReviewCount;
   const encodedProductFolder = productFolder ? encodeURIComponent(productFolder) : '';
+  const ratingImageVersionSuffix = id === '3' ? '?v=20260502-r1' : '';
   const ratingImageBasePath = encodedProductFolder
     ? `/products/${encodedProductFolder}/ratings`
     : '/products/Pingu%20MINI%20MEME/ratings';
@@ -530,16 +549,16 @@ export default function ProductDetail() {
           `${ratingImageBasePath}/Screenshot%202026-04-25%20004039.png`,
         ]
       : [
-          `${ratingImageBasePath}/1.png`,
-          `${ratingImageBasePath}/2.png`,
-          `${ratingImageBasePath}/3.png`,
-          `${ratingImageBasePath}/4.png`,
-          `${ratingImageBasePath}/5.png`,
-          `${ratingImageBasePath}/6.png`,
-          `${ratingImageBasePath}/7.png`,
-          `${ratingImageBasePath}/8.png`,
-          `${ratingImageBasePath}/9.png`,
-          `${ratingImageBasePath}/10.png`,
+          `${ratingImageBasePath}/1.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/2.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/3.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/4.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/5.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/6.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/7.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/8.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/9.png${ratingImageVersionSuffix}`,
+          `${ratingImageBasePath}/10.png${ratingImageVersionSuffix}`,
         ]),
   ];
   const highlightImagePaths =
@@ -637,6 +656,27 @@ export default function ProductDetail() {
               : '8 standard designs + 1 hidden design, capturing Squidward\'s many-sided life. Hidden Edition: “Handsome Time” (the classic Handsome Squidward look). Draw rate: 1/72.',
           badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
           image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+      ]
+    : isSiamFridgeMagnetBlindBagProduct
+    ? [
+        {
+          badge: language === 'cn' ? '玩法展示' : 'SHOWCASE',
+          title: language === 'cn' ? '解锁隐藏玩法 拼出专属场景' : 'Unlock Hidden Gameplay, Build Your Own Scene',
+          body: language === 'cn'
+            ? '全系列采用独创模块化设计，每一款边缘均可精准契合。随心收集，自由拼接，在家就能组建你的专属动漫微缩世界。'
+            : 'The entire series adopts an original modular design, and every piece connects precisely at the edges. Collect freely, mix and match as you like, and build your own anime-style miniature world at home.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/1.png`,
+        },
+        {
+          badge: language === 'cn' ? '玩法展示' : 'SHOWCASE',
+          title: language === 'cn' ? '奇遇隐藏款 闪粉滴胶工艺' : 'Hidden Surprise, Glitter Resin Craft',
+          body: language === 'cn'
+            ? '特别推出限定“打工田中”隐藏款，配以晶莹剔透的闪粉滴胶工艺。光影下流光溢彩，收藏价值与颜值双倍升级，等待幸运的你来开启。'
+            : 'Featuring the limited hidden edition “Working Tanaka,” paired with crystal-clear glitter resin craftsmanship. It shimmers beautifully under light, delivering both elevated collectible value and visual appeal.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/2.png`,
         },
       ]
     : [
@@ -1121,6 +1161,66 @@ export default function ProductDetail() {
       style: language === 'cn' ? '款式：Pingu相机毛绒斜挎包' : 'item type: Pingu Plush Camera Crossbody Bag',
       image: ratingImagePaths[idx] ?? card.image,
       rating: idx === 2 || idx === 7 ? 4 : 5,
+    }));
+  }
+  if (isSiamFridgeMagnetBlindBagProduct) {
+    const siamNames = [
+      '晴晴喵',
+      'Riko Tan',
+      '阿悦',
+      'Mina Luo',
+      '小橙子',
+      'Kira Wen',
+      '团团酱',
+      'Nori Chan',
+      '沐沐',
+      'Eri Q.',
+    ];
+    const siamStyles = [
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '随机盲袋1个',
+      '端盒 12个',
+      '随机盲袋1个',
+    ];
+    const siamTextsCn = [
+      '抽到两个本来没有的普款，还有一个隐藏，呜呜呜，感动！',
+      '正的，单发出隐藏，闪闪的很好看，挺厚实的',
+      '一次很好的购物体验，服务周到，物流快速，配送也很周到，态度也很好，物有所值啊，果断好评！',
+      '觉得商品还不错',
+      '冰箱贴也抽出了暹罗猫！！！',
+      '萌！',
+      '这次抽到了厘普和小河欸 上次去线下店抽到了秀珍 特别可爱的宝宝们😍',
+      '哈哈，就想要多栋和秀珍，运气好抽到啦，特别可爱的',
+      '端盒端到隐藏款，张田中守护我❗',
+      '很可爱',
+    ];
+    const siamTextsEn = [
+      'I pulled two regular styles I did not have before, plus one hidden. So touched!',
+      'Authentic. I got a hidden from a single blind bag. The glitter effect is pretty and the piece feels solid.',
+      'A great shopping experience overall: thoughtful service, fast shipping, careful delivery, and great attitude. Totally worth it.',
+      'I think the product is pretty good.',
+      'I even pulled the Siamese cat fridge magnet style!',
+      'So cute!',
+      'This time I pulled Lipu and Xiaohe. Last time at the offline store I got Xiuzhen. All of them are super adorable.',
+      'Haha, I only wanted Duodong and Xiuzhen, and I got them. So lucky and so cute.',
+      'Got the hidden from a full case. Zhang Tianzhong is protecting me!',
+      'Very cute.',
+    ];
+    ratingCards = siamNames.map((name, idx) => ({
+      id: `siam-rating-${idx + 1}`,
+      name,
+      date: `5/${2 - Math.floor(idx / 5)}/${2026}`,
+      rating: idx === 3 ? 4 : 5,
+      text: language === 'cn' ? siamTextsCn[idx] : siamTextsEn[idx],
+      item: product.name[language],
+      style: `${language === 'cn' ? '款式：' : 'item type: '}${siamStyles[idx]}`,
+      image: ratingImagePaths[idx] ?? '',
     }));
   }
   const uniqueRatingCards = Array.from(new Map(ratingCards.map((card) => [card.id, card])).values());
@@ -1745,12 +1845,12 @@ export default function ProductDetail() {
                         (e.target as HTMLImageElement).src = product.fallbackImage;
                       }}
                       alt={block.title}
-                      className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'w-full aspect-square object-cover' : 'w-full aspect-[2/3] object-cover'}
+                      className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct || isSiamFridgeMagnetBlindBagProduct) ? 'w-full aspect-square object-cover' : 'w-full aspect-[2/3] object-cover'}
                       referrerPolicy="no-referrer"
                     />
                   </div>
                 </div>
-                <div className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:pr-3 text-left' : (idx % 2 === 1 ? 'md:pr-4' : 'md:pl-4')}>
+                <div className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:pr-3 text-left' : (idx % 2 === 1 ? 'md:pl-10 md:pr-0' : 'md:pl-4')}>
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] tracking-[0.15em] font-black mb-4 ${block.badgeClass}`}>
                     {block.badge}
                   </span>
