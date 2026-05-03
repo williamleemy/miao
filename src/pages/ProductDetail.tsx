@@ -21,6 +21,7 @@ import {
 import { CURRENCIES, useCartStore, useLanguageStore } from '../lib/store';
 import { MOCK_PRODUCTS } from '../lib/data';
 import { AnimatePresence } from 'motion/react';
+import ShippingSubsidyModal from '../components/ShippingSubsidyModal';
 
 type PurchaseOptionKey = 'blind' | 'boxed';
 const PRODUCT_ONE_STYLE_OPTIONS = [
@@ -279,6 +280,7 @@ export default function ProductDetail() {
   const [reviewText, setReviewText] = useState('');
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
+  const [shippingSubsidyModalOpen, setShippingSubsidyModalOpen] = useState(false);
   const thumbStripRef = useRef<HTMLDivElement | null>(null);
   const sortMenuRef = useRef<HTMLDivElement | null>(null);
   const photoInputRef = useRef<HTMLInputElement | null>(null);
@@ -300,7 +302,7 @@ export default function ProductDetail() {
   }, [id]);
 
   useEffect(() => {
-    if (id === '23') {
+    if (id === '23' || (id === '8' && purchaseOption)) {
       setCurrentImageIndex(0);
     }
   }, [id, purchaseOption]);
@@ -339,6 +341,8 @@ export default function ProductDetail() {
       ? ['1', '2', '3', '4', 'last', '【整套8款】']
     : productFolder === '比奇堡 章鱼哥的一天系列'
       ? ['2', '3', '4', '5', 'last']
+    : productFolder === '轻松小熊'
+      ? ['2', '3', '4', '5']
       : ['2', '3', '4', 'last'];
   const product23StyleImage =
     id === '23' && productFolder && purchaseOption
@@ -359,11 +363,11 @@ export default function ProductDetail() {
             : []),
         ]
       : [
-          resolvedMainImage ?? product.imageUrl,
-          ...(productFolder
-            ? productGallerySuffixes.map((suffix) => `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(`${suffix}.png`)}${productImageVersionSuffix}`)
-            : []),
-        ]
+            resolvedMainImage ?? product.imageUrl,
+            ...(productFolder
+              ? productGallerySuffixes.map((suffix) => `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(`${suffix}.png`)}${productImageVersionSuffix}`)
+              : []),
+          ]
     : [];
 
   if (!product) {
@@ -380,6 +384,14 @@ export default function ProductDetail() {
   const relatedProducts = MOCK_PRODUCTS
     .filter((p) => p.category.en === product.category.en && p.id !== product.id)
     .slice(0, 4);
+
+  /** 轻松小熊：款式图只作为大图第 1 张预览，不加入 productImages 缩略图列表 */
+  const product8StyleImageUrl =
+    product.id === '8' && productFolder && purchaseOption
+      ? `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(
+          purchaseOption === 'blind' ? '随机盲盒 1个.png' : '端盒 8个.png'
+        )}`
+      : null;
 
   const isPinguSeriesProduct = (product as any).series?.en === 'Pingu';
   const isPinguCameraBagProduct = product.id === '22';
@@ -418,7 +430,9 @@ export default function ProductDetail() {
               ? PRODUCT_FIVE_STYLE_IMAGE_BY_LABEL
       : {};
   const isSiamFridgeMagnetBlindBagProduct = product.id === '3';
-  const hasTwoOptions = (isPinguSeriesProduct || product.id === '6' || isSiamFridgeMagnetBlindBagProduct) && !isPinguCameraBagProduct;
+  const hasTwoOptions =
+    (isPinguSeriesProduct || product.id === '6' || product.id === '8' || isSiamFridgeMagnetBlindBagProduct) &&
+    !isPinguCameraBagProduct;
   const isSquidwardSeriesProduct = product.id === '6';
   const purchaseOptionsForProduct: Record<PurchaseOptionKey, { cartIdSuffix: string; label: { en: string; cn: string }; beforeMyr: number; afterMyr: number }> =
     isSquidwardSeriesProduct
@@ -426,6 +440,11 @@ export default function ProductDetail() {
           blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 89, afterMyr: 75 },
           boxed: { ...PURCHASE_OPTIONS.boxed, beforeMyr: 599, afterMyr: 569 },
         }
+      : product.id === '8'
+        ? {
+            blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 69, afterMyr: 55 },
+            boxed: { ...PURCHASE_OPTIONS.boxed, beforeMyr: 319, afterMyr: 289 },
+          }
       : isPinguDuoProduct
       ? {
           blind: {
@@ -1420,6 +1439,36 @@ export default function ProductDetail() {
     });
   };
 
+  const shippingPriceNote = (extraClassName: string) => (
+    <p className={`text-sm md:text-base text-bakery-brown/70 font-medium leading-relaxed ${extraClassName}`}>
+      {language === 'cn' ? (
+        <>
+          此价格已含西马空运费，无隐藏收费；东马及海外客户请{' '}
+          <button
+            type="button"
+            onClick={() => setShippingSubsidyModalOpen(true)}
+            className="font-bold text-pink-600 hover:text-pink-700 underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-inherit"
+          >
+            点击查看详情
+          </button>
+          领取运费补贴。
+        </>
+      ) : (
+        <>
+          This price includes air freight to West Malaysia with no hidden fees. East Malaysia and overseas customers:{' '}
+          <button
+            type="button"
+            onClick={() => setShippingSubsidyModalOpen(true)}
+            className="font-bold text-pink-600 hover:text-pink-700 underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-inherit"
+          >
+            click for details
+          </button>
+          {' '}for shipping subsidy information.
+        </>
+      )}
+    </p>
+  );
+
   return (
     <div className="bg-bakery-cream min-h-screen pb-12 md:pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
@@ -1445,7 +1494,15 @@ export default function ProductDetail() {
 
                     const isFront = offset === 0;
                     const zIndex = productImages.length - offset;
-                    
+                    const polaroidDisplaySrc =
+                      product.id === '8' &&
+                      purchaseOption &&
+                      isFront &&
+                      currentImageIndex === 0 &&
+                      product8StyleImageUrl
+                        ? product8StyleImageUrl
+                        : img;
+
                     return (
                       <motion.div
                         key={`${img}-${idx}`}
@@ -1476,7 +1533,7 @@ export default function ProductDetail() {
                         <div className="w-full h-full bg-white p-3 md:p-4 pb-24 md:pb-28 shadow-[0_30px_70px_rgba(0,0,0,0.2)] border-2 border-bakery-pink-light/20 rounded-sm transform-gpu">
                           <div className="w-full h-full overflow-hidden bg-bakery-cream/20 rounded-sm relative">
                             <img 
-                              src={img} 
+                              src={polaroidDisplaySrc} 
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = product.fallbackImage;
                               }}
@@ -1606,11 +1663,7 @@ export default function ProductDetail() {
                       </span>
                     </div>
                   )}
-                  <p className="text-sm md:text-base text-bakery-brown/70 font-medium mb-4 leading-relaxed">
-                    {language === 'cn'
-                      ? '我们的价钱已经包括西马运费；东马与国外运费需另外计算。若想更详细了解最终金额，请联系我。'
-                      : 'Our listed price already includes shipping within West Malaysia. East Malaysia and international shipping are calculated separately. Contact us for the exact final total.'}
-                  </p>
+                  {shippingPriceNote('mb-4')}
                   <div className="mb-8">
                     <div className="text-sm font-black text-bakery-brown mb-3">
                       {language === 'cn' ? '款式' : 'Style'}
@@ -1649,11 +1702,7 @@ export default function ProductDetail() {
                     <span className="text-4xl font-black text-pink-500">{formatPrice(singlePriceAfterUsd)}</span>
                     <span className="text-bakery-brown/40 line-through text-xl font-bold">{formatPrice(singlePriceBeforeUsd)}</span>
                   </div>
-                  <p className="text-sm md:text-base text-bakery-brown/70 font-medium mt-3 leading-relaxed">
-                    {language === 'cn'
-                      ? '我们的价钱已经包括西马运费；东马与国外运费需另外计算。若想更详细了解最终金额，请联系我。'
-                      : 'Our listed price already includes shipping within West Malaysia. East Malaysia and international shipping are calculated separately. Contact us for the exact final total.'}
-                  </p>
+                  {shippingPriceNote('mt-3')}
                 </div>
               )}
               {!hasTwoOptions && (
@@ -2362,6 +2411,12 @@ export default function ProductDetail() {
           </div>
         </div>
       )}
+      <ShippingSubsidyModal
+        open={shippingSubsidyModalOpen}
+        onClose={() => setShippingSubsidyModalOpen(false)}
+        productNameCn={product.name.cn}
+        productNameEn={product.name.en}
+      />
     </div>
   );
 }

@@ -6,13 +6,15 @@ interface BannerBoardProps {
   alt?: string;
   className?: string;
   aspectRatio?: string;
+  imageClassName?: string;
 }
 
 export default function BannerBoard({ 
   src, 
   alt = "Advertisement", 
   className = "", 
-  aspectRatio = "aspect-[21/8] md:aspect-[21/4]" 
+  aspectRatio = "aspect-[21/8] md:aspect-[21/4]",
+  imageClassName = "object-cover"
 }: BannerBoardProps) {
   return (
     <motion.div 
@@ -24,7 +26,7 @@ export default function BannerBoard({
       <img 
         src={src}
         alt={alt}
-        className="w-full h-full object-cover opacity-95 group-hover:scale-105 transition-transform duration-700"
+        className={`w-full h-full ${imageClassName} opacity-95 group-hover:scale-105 transition-transform duration-700`}
         referrerPolicy="no-referrer"
       />
       {/* Subtle overlay for depth */}

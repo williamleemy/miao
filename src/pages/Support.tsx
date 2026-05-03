@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { HelpCircle, Truck, RefreshCcw, MessageCircle, ChevronDown, Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { useLanguageStore } from '../lib/store';
@@ -79,6 +80,11 @@ export default function Support() {
                 </div>
                 <h2 className="text-3xl font-display font-black text-bakery-brown">{t('footer.shipping')}</h2>
               </div>
+              <p className="mb-4">
+                <Link to="/shipping-policy" className="font-bold text-pink-600 hover:text-pink-700 underline underline-offset-2">
+                  {language === 'cn' ? '查看完整配送政策（独立页面）' : 'View full shipping policy (dedicated page)'}
+                </Link>
+              </p>
               <div className="prose prose-pink max-w-none text-bakery-brown/70 font-medium space-y-4">
                 <p>{language === 'cn' ? '我们致力于为您提供最快捷、最安全的配送服务。' : 'We are committed to providing you with the fastest and safest delivery service.'}</p>
                 <ul className="list-disc pl-5 space-y-2">

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Send, MessageSquare, ChevronLeft, ChevronRight, Heart, Sparkles } from 'lucide-react';
 import { useLanguageStore, useCartStore } from '../lib/store';
@@ -19,6 +19,7 @@ export default function Home() {
     if (product.id === '20') return 10 / unitsPerUsd.MYR;
     if (product.id === '22') return 69.9 / unitsPerUsd.MYR;
     if (product.id === '23') return 55.9 / unitsPerUsd.MYR;
+    if (product.id === '8') return 55 / unitsPerUsd.MYR;
     if ((product as any).series?.en === 'Pingu' && product.id !== '22') return 59 / unitsPerUsd.MYR;
     return product.price;
   };
@@ -411,12 +412,127 @@ function HeroCarousel() {
   );
 }
 
+/** 手机端：透明左右滑动提示，约 5 秒内淡入淡出 3 次；用户横滑或播完即不再出现 */
+function MobileHorizontalSwipeHint({
+  scrollRef,
+  watchKey,
+}: {
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  watchKey: string | number;
+}) {
+  const [show, setShow] = useState(false);
+  const dismissed = useRef(false);
+
+  useEffect(() => {
+    dismissed.current = false;
+    setShow(false);
+  }, [watchKey]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const sync = () => {
+      if (dismissed.current) {
+        setShow(false);
+        return;
+      }
+      const mobile = window.matchMedia('(max-width: 639px)').matches;
+      const overflow = el.scrollWidth > el.clientWidth + 2;
+      setShow(mobile && overflow);
+    };
+
+    let cancelled = false;
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cancelled) sync();
+      });
+    });
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    window.addEventListener('resize', sync);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(id);
+      ro.disconnect();
+      window.removeEventListener('resize', sync);
+    };
+  }, [scrollRef, watchKey]);
+
+  const dismiss = useCallback(() => {
+    dismissed.current = true;
+    setShow(false);
+  }, []);
+
+  useEffect(() => {
+    if (!show) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const startLeft = el.scrollLeft;
+    const dismissNotBefore = Date.now() + 550;
+
+    const canDismiss = () => Date.now() >= dismissNotBefore;
+
+    const onScroll = () => {
+      if (!canDismiss()) return;
+      if (Math.abs(el.scrollLeft - startLeft) > 10) dismiss();
+    };
+
+    let touchStartX = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0]?.clientX ?? 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!canDismiss()) return;
+      const x = e.touches[0]?.clientX ?? touchStartX;
+      if (Math.abs(x - touchStartX) > 20) dismiss();
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [show, scrollRef, dismiss]);
+
+  if (!show) return null;
+
+  return (
+    <motion.div
+      className="sm:hidden pointer-events-none absolute inset-0 z-30 flex items-center justify-between px-1"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0, 1, 0, 1, 0] }}
+      transition={{ duration: 5, ease: 'easeInOut' }}
+      onAnimationComplete={() => {
+        if (!dismissed.current) {
+          dismissed.current = true;
+          setShow(false);
+        }
+      }}
+    >
+      <div className="w-12 flex justify-center bg-gradient-to-r from-black/10 to-transparent">
+        <ChevronLeft className="h-8 w-8 text-bakery-brown/45" strokeWidth={2.25} aria-hidden />
+      </div>
+      <div className="flex-1 min-w-0" />
+      <div className="w-12 flex justify-center bg-gradient-to-l from-black/10 to-transparent">
+        <ChevronRight className="h-8 w-8 text-bakery-brown/45" strokeWidth={2.25} aria-hidden />
+      </div>
+    </motion.div>
+  );
+}
+
 function ProductSection({ title, items, t, language, addItem, tag, formatPrice, getCardPriceUsd, showCategories = false }: { title: string, items: any[], t: any, language: any, addItem: any, tag: string, formatPrice: (price: number) => string, getCardPriceUsd: (product: any) => number, showCategories?: boolean }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const [activeCategory, setActiveCategory] = useState('All');
+  const bestSellerBannerPath = encodeURI('/banners/人气热卖banner/ChatGPT Image May 3, 2026, 12_24_42 AM.png');
+  const newArrivalBannerPath = encodeURI('/banners/新品首发banner/ChatGPT Image May 3, 2026, 01_53_00 PM.png');
+  const monthlyLimitedBannerPath = encodeURI('/banners/本月限定banner/ChatGPT Image May 3, 2026, 02_17_06 PM.png');
 
   const categories = [
     'All', 
@@ -547,11 +663,27 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
         {/* Section Banner Board */}
         <BannerBoard 
           src={
+            tag === 'BestSeller' ? bestSellerBannerPath :
+            tag === 'NewArrival' ? newArrivalBannerPath :
+            tag === 'Limited' ? monthlyLimitedBannerPath :
             tag === 'All' ? "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=1600" :
-            tag === 'NewArrival' ? "https://images.unsplash.com/photo-1581557991964-125469da3b8a?auto=format&fit=crop&q=80&w=1600" :
             "https://images.unsplash.com/photo-1559454403-b8fb88521f11?auto=format&fit=crop&q=80&w=1600"
           }
           alt={`${title} Banner`}
+          aspectRatio={
+            tag === 'BestSeller'
+              ? "aspect-[1927/816]"
+              : tag === 'NewArrival'
+                ? "aspect-[1024/456]"
+                : tag === 'Limited'
+                  ? "aspect-[1914/822]"
+                  : undefined
+          }
+          imageClassName={
+            tag === 'NewArrival' || tag === 'Limited'
+              ? "object-contain group-hover:scale-100"
+              : undefined
+          }
           className="mb-10"
         />
 
@@ -573,9 +705,10 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
           </div>
         )}
         
+        <div className="relative isolate">
         <div 
           ref={scrollRef}
-          className="flex overflow-x-auto gap-4 md:gap-8 pb-8 snap-x scrollbar-hide cursor-grab active:cursor-grabbing select-none -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="relative z-0 flex overflow-x-auto gap-4 md:gap-8 pb-8 snap-x scrollbar-hide cursor-grab active:cursor-grabbing select-none -mx-4 px-4 sm:mx-0 sm:px-0"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
@@ -623,6 +756,11 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
               </div>
             </motion.div>
           ))}
+        </div>
+          <MobileHorizontalSwipeHint
+            scrollRef={scrollRef}
+            watchKey={`${tag}-${activeCategory}-${filteredItems.length}`}
+          />
         </div>
       </div>
     </section>
@@ -721,9 +859,10 @@ function SeriesSection({ title, items, t, language, addItem, category, formatPri
           className="mb-10"
         />
         
+        <div className="relative isolate">
         <div 
           ref={scrollRef}
-          className="flex overflow-x-auto gap-4 md:gap-6 pb-6 md:pb-8 snap-x scrollbar-hide cursor-grab active:cursor-grabbing select-none -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="relative z-0 flex overflow-x-auto gap-4 md:gap-6 pb-6 md:pb-8 snap-x scrollbar-hide cursor-grab active:cursor-grabbing select-none -mx-4 px-4 sm:mx-0 sm:px-0"
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
@@ -774,6 +913,8 @@ function SeriesSection({ title, items, t, language, addItem, category, formatPri
               </div>
             </motion.div>
           ))}
+        </div>
+          <MobileHorizontalSwipeHint scrollRef={scrollRef} watchKey={`${category}-${items.length}`} />
         </div>
       </div>
     </section>

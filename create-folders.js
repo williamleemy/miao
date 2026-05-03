@@ -9,7 +9,7 @@ const products = [
   'chocolate-puzzle',
   'vanilla-tea-set',
   'spongebob-plush',
-  'patrick-star-figure',
+  '轻松小熊',
   'mr-krabs-bank',
   'peppa-pig-playset',
   'squidward-tentacles-plush',

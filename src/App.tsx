@@ -9,6 +9,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import ProductDetail from './pages/ProductDetail';
 import Support from './pages/Support';
+import ShippingPolicy from './pages/ShippingPolicy';
 import { Cake, Facebook, Instagram, Twitter, Home as HomeIcon, Package2, ShoppingCart, ClipboardList, UserRound, Phone, MapPin } from 'lucide-react';
 
 function AppContent() {
@@ -28,6 +29,7 @@ function AppContent() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/shipping-policy" element={<ShippingPolicy />} />
           </Routes>
         </main>
       
@@ -95,7 +97,7 @@ function AppContent() {
                 <h3 className="font-display font-bold text-bakery-brown text-xl mb-6">{t('footer.customerService')}</h3>
                 <ul className="space-y-3 font-medium text-bakery-brown/80">
                   <li><Link to="/support#faq" className="hover:text-pink-600 transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-bakery-mint"></span>{t('footer.faq')}</Link></li>
-                  <li><Link to="/support#shipping" className="hover:text-pink-600 transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-bakery-mint"></span>{t('footer.shipping')}</Link></li>
+                  <li><Link to="/shipping-policy" className="hover:text-pink-600 transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-bakery-mint"></span>{t('footer.shipping')}</Link></li>
                   <li><Link to="/support#returns" className="hover:text-pink-600 transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-bakery-mint"></span>{t('footer.returns')}</Link></li>
                   <li><Link to="/support#contact" className="hover:text-pink-600 transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-bakery-mint"></span>{t('footer.contact')}</Link></li>
                 </ul>
