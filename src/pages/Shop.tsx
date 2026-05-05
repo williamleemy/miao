@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Trophy, Star, TrendingUp, ArrowRight } from 'lucide-react';
 import { useCartStore, useLanguageStore } from '../lib/store';
+import { getCardPriceUsd } from '../lib/cardPriceUsd';
 import { MOCK_PRODUCTS } from '../lib/data';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -84,19 +85,6 @@ export default function Shop() {
   const getCategoryName = (catEn: string) => {
     if (catEn === 'All') return t('shop.all');
     return t(`nav.categories.${getCategoryKey(catEn)}`);
-  };
-
-  const getCardPriceUsd = (product: (typeof MOCK_PRODUCTS)[number]) => {
-    if (product.id === '1') return 49 / unitsPerUsd.MYR;
-    if (product.id === '4') return 60 / unitsPerUsd.MYR;
-    if (product.id === '6') return 75 / unitsPerUsd.MYR;
-    if (product.id === '10') return 10 / unitsPerUsd.MYR;
-    if (product.id === '14') return 50 / unitsPerUsd.MYR;
-    if (product.id === '20') return 10 / unitsPerUsd.MYR;
-    if (product.id === '22') return 69.9 / unitsPerUsd.MYR;
-    if (product.id === '23') return 55.9 / unitsPerUsd.MYR;
-    if ((product as any).series?.en === 'Pingu' && product.id !== '22') return 59 / unitsPerUsd.MYR;
-    return product.price;
   };
 
   const isBestSeller = activeTag === 'BestSeller';
@@ -312,7 +300,7 @@ export default function Shop() {
                   </div>
                   
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-bakery-pink-light/50">
-                    <span className="text-lg sm:text-3xl font-black text-pink-500">{formatPrice(getCardPriceUsd(product))}</span>
+                    <span className="text-lg sm:text-3xl font-black text-pink-500">{formatPrice(getCardPriceUsd(product, unitsPerUsd))}</span>
                     <motion.button 
                       whileHover={{ scale: 1.1, backgroundColor: '#86efac' }}
                       whileTap={{ scale: 0.9 }}

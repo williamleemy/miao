@@ -1,28 +1,15 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Send, MessageSquare, ChevronLeft, ChevronRight, Heart, Sparkles } from 'lucide-react';
 import { useLanguageStore, useCartStore } from '../lib/store';
-import { MOCK_PRODUCTS, MOCK_REVIEWS } from '../lib/data';
+import { getCardPriceUsd } from '../lib/cardPriceUsd';
+import { MOCK_PRODUCTS, MOCK_REVIEWS, MOCK_REVIEWS_ROW2 } from '../lib/data';
 import { motion } from 'motion/react';
 import BannerBoard from '../components/BannerBoard';
 
 export default function Home() {
   const { t, language, formatPrice, unitsPerUsd } = useLanguageStore();
   const addItem = useCartStore((state) => state.addItem);
-
-  const getCardPriceUsd = (product: (typeof MOCK_PRODUCTS)[number]) => {
-    if (product.id === '1') return 49 / unitsPerUsd.MYR;
-    if (product.id === '4') return 60 / unitsPerUsd.MYR;
-    if (product.id === '6') return 75 / unitsPerUsd.MYR;
-    if (product.id === '10') return 10 / unitsPerUsd.MYR;
-    if (product.id === '14') return 50 / unitsPerUsd.MYR;
-    if (product.id === '20') return 10 / unitsPerUsd.MYR;
-    if (product.id === '22') return 69.9 / unitsPerUsd.MYR;
-    if (product.id === '23') return 55.9 / unitsPerUsd.MYR;
-    if (product.id === '8') return 55 / unitsPerUsd.MYR;
-    if ((product as any).series?.en === 'Pingu' && product.id !== '22') return 59 / unitsPerUsd.MYR;
-    return product.price;
-  };
 
   const bestSellers = MOCK_PRODUCTS.filter(p => (p as any).tags?.includes('BestSeller'));
   const newArrivals = MOCK_PRODUCTS.filter(p => (p as any).tags?.includes('NewArrival'));
@@ -32,6 +19,9 @@ export default function Home() {
   const sanrioItems = MOCK_PRODUCTS.filter(p => p.category.en === 'Sanrio');
   const originalItems = MOCK_PRODUCTS.filter(p => p.category.en === 'Original');
   const moreTreasuresItems = MOCK_PRODUCTS.filter(p => p.category.en === 'More');
+
+  const reviewMarqueeRow1 = useMemo(() => [...MOCK_REVIEWS, ...MOCK_REVIEWS], []);
+  const reviewMarqueeRow2 = useMemo(() => [...MOCK_REVIEWS_ROW2, ...MOCK_REVIEWS_ROW2], []);
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,15 +69,15 @@ export default function Home() {
       </section>
 
       {/* Main Sections */}
-      <ProductSection title={t('home.bestSellers')} items={bestSellers} t={t} language={language} addItem={addItem} tag="BestSeller" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
-      <ProductSection title={t('home.newArrivals')} items={newArrivals} t={t} language={language} addItem={addItem} tag="NewArrival" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
-      <ProductSection title={t('home.monthlyLimited')} items={monthlyLimited} t={t} language={language} addItem={addItem} tag="Limited" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
+      <ProductSection title={t('home.bestSellers')} items={bestSellers} t={t} language={language} addItem={addItem} tag="BestSeller" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
+      <ProductSection title={t('home.newArrivals')} items={newArrivals} t={t} language={language} addItem={addItem} tag="NewArrival" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
+      <ProductSection title={t('home.monthlyLimited')} items={monthlyLimited} t={t} language={language} addItem={addItem} tag="Limited" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
 
       {/* Series Sections */}
-      <SeriesSection title={t('home.spongebobSeries')} items={spongebobItems} t={t} language={language} addItem={addItem} category="SpongeBob" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
-      <SeriesSection title={t('home.sanrioSeries')} items={sanrioItems} t={t} language={language} addItem={addItem} category="Sanrio" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
-      <SeriesSection title={t('home.originalSeries')} items={originalItems} t={t} language={language} addItem={addItem} category="Original" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
-      <SeriesSection title={t('home.more')} items={moreTreasuresItems} t={t} language={language} addItem={addItem} category="More" formatPrice={formatPrice} getCardPriceUsd={getCardPriceUsd} />
+      <SeriesSection title={t('home.spongebobSeries')} items={spongebobItems} t={t} language={language} addItem={addItem} category="SpongeBob" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
+      <SeriesSection title={t('home.sanrioSeries')} items={sanrioItems} t={t} language={language} addItem={addItem} category="Sanrio" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
+      <SeriesSection title={t('home.originalSeries')} items={originalItems} t={t} language={language} addItem={addItem} category="Original" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
+      <SeriesSection title={t('home.more')} items={moreTreasuresItems} t={t} language={language} addItem={addItem} category="More" formatPrice={formatPrice} getCardPriceUsd={(p) => getCardPriceUsd(p, unitsPerUsd)} />
 
       {/* Auto-scrolling Reviews Section */}
       <section className="py-12 md:py-20 bg-bakery-blue/20 overflow-hidden bg-grid-pattern">
@@ -98,41 +88,42 @@ export default function Home() {
           </h2>
         </div>
         
-        <div className="relative w-full overflow-hidden whitespace-nowrap flex flex-col gap-4 md:gap-6">
-          <div className="inline-flex animate-marquee gap-4 md:gap-6 px-3 hover:[animation-play-state:paused]">
-            {/* Double the array for seamless looping */}
-            {[...MOCK_REVIEWS, ...MOCK_REVIEWS].map((review, i) => (
-              <motion.div 
-                whileHover={{ scale: 1.02, y: -5 }}
-                key={`row1-${review.id}-${i}`} 
-                className="w-64 md:w-80 whitespace-normal bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-bakery-blue/30 inline-block cursor-pointer"
+        <div className="relative w-full overflow-hidden whitespace-nowrap flex flex-col gap-3 md:gap-4">
+          <div className="inline-flex animate-marquee gap-3 md:gap-4 px-3 hover:[animation-play-state:paused]">
+            {reviewMarqueeRow1.map((review, i) => (
+              <motion.div
+                whileHover={{ scale: 1.02, y: -4 }}
+                key={`row1-${review.id}-${i}`}
+                className="w-64 md:w-80 whitespace-normal bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-bakery-blue/25 inline-block cursor-pointer [transform:translateZ(0)]"
               >
                 <div className="flex text-bakery-yellow mb-2 md:mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`h-4 w-4 md:h-5 md:w-5 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
+                  {[...Array(5)].map((_, si) => (
+                    <Star key={si} className={`h-4 w-4 md:h-5 md:w-5 ${si < review.rating ? 'fill-current' : 'text-gray-300'}`} />
                   ))}
                 </div>
-                <p className="text-bakery-brown/80 font-medium mb-2 md:mb-4 text-sm md:text-base line-clamp-3">"{review.text[language]}"</p>
-                <p className="text-bakery-brown font-bold font-display text-sm md:text-base">- {review.name}</p>
+                <p className="text-bakery-brown/80 font-medium mb-2 md:mb-3 text-sm md:text-base line-clamp-3 leading-snug tracking-tight text-pretty antialiased">
+                  {language === 'cn' ? `「${review.text.cn}」` : `"${review.text.en}"`}
+                </p>
+                <p className="text-bakery-brown font-bold font-display text-sm md:text-base tracking-tight">—{review.name}</p>
               </motion.div>
             ))}
           </div>
-          
-          <div className="inline-flex animate-marquee [animation-direction:reverse] gap-4 md:gap-6 px-3 hover:[animation-play-state:paused]">
-            {/* Reverse the array for the second row for variety */}
-            {[...MOCK_REVIEWS].reverse().concat([...MOCK_REVIEWS].reverse()).map((review, i) => (
-              <motion.div 
-                whileHover={{ scale: 1.02, y: -5 }}
-                key={`row2-${review.id}-${i}`} 
-                className="w-64 md:w-80 whitespace-normal bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-bakery-blue/30 inline-block cursor-pointer"
+          <div className="inline-flex animate-marquee [animation-direction:reverse] gap-3 md:gap-4 px-3 hover:[animation-play-state:paused]">
+            {reviewMarqueeRow2.map((review, i) => (
+              <motion.div
+                whileHover={{ scale: 1.02, y: -4 }}
+                key={`row2-${review.id}-${i}`}
+                className="w-64 md:w-80 whitespace-normal bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-bakery-blue/25 inline-block cursor-pointer [transform:translateZ(0)]"
               >
                 <div className="flex text-bakery-yellow mb-2 md:mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`h-4 w-4 md:h-5 md:w-5 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
+                  {[...Array(5)].map((_, si) => (
+                    <Star key={si} className={`h-4 w-4 md:h-5 md:w-5 ${si < review.rating ? 'fill-current' : 'text-gray-300'}`} />
                   ))}
                 </div>
-                <p className="text-bakery-brown/80 font-medium mb-2 md:mb-4 text-sm md:text-base line-clamp-3">"{review.text[language]}"</p>
-                <p className="text-bakery-brown font-bold font-display text-sm md:text-base">- {review.name}</p>
+                <p className="text-bakery-brown/80 font-medium mb-2 md:mb-3 text-sm md:text-base line-clamp-3 leading-snug tracking-tight text-pretty antialiased">
+                  {language === 'cn' ? `「${review.text.cn}」` : `"${review.text.en}"`}
+                </p>
+                <p className="text-bakery-brown font-bold font-display text-sm md:text-base tracking-tight">—{review.name}</p>
               </motion.div>
             ))}
           </div>

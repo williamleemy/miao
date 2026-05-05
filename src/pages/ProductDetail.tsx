@@ -19,6 +19,8 @@ import {
   Clapperboard
 } from 'lucide-react';
 import { CURRENCIES, useCartStore, useLanguageStore } from '../lib/store';
+import { getCardPriceUsd } from '../lib/cardPriceUsd';
+import { BB9_REVIEW_SEED } from '../lib/bb9ReviewSeed';
 import { MOCK_PRODUCTS } from '../lib/data';
 import { AnimatePresence } from 'motion/react';
 import ShippingSubsidyModal from '../components/ShippingSubsidyModal';
@@ -275,6 +277,7 @@ export default function ProductDetail() {
   const [selectedSort, setSelectedSort] = useState<'featured' | 'newest' | 'highest' | 'lowest'>('featured');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
+  const [bb9ReviewsExpanded, setBb9ReviewsExpanded] = useState(false);
   const [reviewStep, setReviewStep] = useState<1 | 2 | 3 | 4>(1);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -299,10 +302,11 @@ export default function ProductDetail() {
     setQuantity(1);
     setPurchaseOption(null);
     setSelectedCustomStyle(null);
+    setBb9ReviewsExpanded(false);
   }, [id]);
 
   useEffect(() => {
-    if (id === '23' || (id === '8' && purchaseOption)) {
+    if (id === '23' || ((id === '8' || id === '7' || id === '11' || id === '12' || id === '13') && purchaseOption)) {
       setCurrentImageIndex(0);
     }
   }, [id, purchaseOption]);
@@ -339,9 +343,19 @@ export default function ProductDetail() {
       ? ['1', '2', '3', '4', '5', '6', '7', '8', '【整套8款】']
     : productFolder === '米菲兔的小小咖啡馆'
       ? ['1', '2', '3', '4', 'last', '【整套8款】']
+    : productFolder === '比奇堡里有什么系列'
+      ? ['2', '3', '4']
     : productFolder === '比奇堡 章鱼哥的一天系列'
       ? ['2', '3', '4', '5', 'last']
     : productFolder === '轻松小熊'
+      ? ['2', '3', '4', '5']
+    : productFolder === '麦兜和朋友们排排坐系列'
+      ? ['2', '3', '4', '5']
+    : productFolder === '胆大党高速婆婆盲盒'
+      ? ['2', '3', '4', '5']
+    : productFolder === '海底乐趣香薰挂饰系列'
+      ? ['2', '3', '4', '5']
+    : productFolder === '比奇堡的居民们星光独白系列'
       ? ['2', '3', '4', '5']
       : ['2', '3', '4', 'last'];
   const product23StyleImage =
@@ -350,9 +364,23 @@ export default function ProductDetail() {
       : null;
   const productImageVersionSuffix = id === '14' ? '?v=20260430' : id === '3' ? '?v=20260502' : id === '5' ? '?v=20260502-r2' : '';
   const resolvedMainImage =
-    (id === '14' || id === '3' || id === '5') && productFolder
+    (id === '14' || id === '3' || id === '5' || id === '11' || id === '9' || id === '12' || id === '13') && productFolder
       ? `/products/${encodeURIComponent(productFolder)}/main.png${productImageVersionSuffix}`
       : product?.imageUrl;
+  /** 双档盲盒（7/8/11/12/13）：选中款式后轮播为「款式预览 → main 海报 → 2–5 图」，首张仍是款式对应图，第二张保留 main */
+  const twoTierBlindBoxStyleImageUrl =
+    product &&
+    (product.id === '8' || product.id === '7' || product.id === '11' || product.id === '12' || product.id === '13') &&
+    productFolder &&
+    purchaseOption
+      ? `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(
+          purchaseOption === 'blind'
+            ? '随机盲盒 1个.png'
+            : product.id === '11' || product.id === '12' || product.id === '13'
+              ? '端盒 6个.png'
+              : '端盒 10个.png'
+        )}`
+      : null;
   const productImages = product
     ? id === '23'
       ? [
@@ -362,12 +390,18 @@ export default function ProductDetail() {
             ? productGallerySuffixes.map((suffix) => `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(`${suffix}.png`)}${productImageVersionSuffix}`)
             : []),
         ]
-      : [
-            resolvedMainImage ?? product.imageUrl,
-            ...(productFolder
-              ? productGallerySuffixes.map((suffix) => `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(`${suffix}.png`)}${productImageVersionSuffix}`)
-              : []),
-          ]
+      : (() => {
+          const galleryPaths = productFolder
+            ? productGallerySuffixes.map(
+                (suffix) =>
+                  `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(`${suffix}.png`)}${productImageVersionSuffix}`
+              )
+            : [];
+          const baseMain = resolvedMainImage ?? product.imageUrl;
+          return twoTierBlindBoxStyleImageUrl
+            ? [twoTierBlindBoxStyleImageUrl, baseMain, ...galleryPaths]
+            : [baseMain, ...galleryPaths];
+        })()
     : [];
 
   if (!product) {
@@ -384,14 +418,6 @@ export default function ProductDetail() {
   const relatedProducts = MOCK_PRODUCTS
     .filter((p) => p.category.en === product.category.en && p.id !== product.id)
     .slice(0, 4);
-
-  /** 轻松小熊：款式图只作为大图第 1 张预览，不加入 productImages 缩略图列表 */
-  const product8StyleImageUrl =
-    product.id === '8' && productFolder && purchaseOption
-      ? `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(
-          purchaseOption === 'blind' ? '随机盲盒 1个.png' : '端盒 8个.png'
-        )}`
-      : null;
 
   const isPinguSeriesProduct = (product as any).series?.en === 'Pingu';
   const isPinguCameraBagProduct = product.id === '22';
@@ -431,7 +457,15 @@ export default function ProductDetail() {
       : {};
   const isSiamFridgeMagnetBlindBagProduct = product.id === '3';
   const hasTwoOptions =
-    (isPinguSeriesProduct || product.id === '6' || product.id === '8' || isSiamFridgeMagnetBlindBagProduct) &&
+    (isPinguSeriesProduct ||
+      product.id === '6' ||
+      product.id === '8' ||
+      product.id === '7' ||
+      product.id === '11' ||
+      product.id === '12' ||
+      product.id === '13' ||
+      product.id === '9' ||
+      isSiamFridgeMagnetBlindBagProduct) &&
     !isPinguCameraBagProduct;
   const isSquidwardSeriesProduct = product.id === '6';
   const purchaseOptionsForProduct: Record<PurchaseOptionKey, { cartIdSuffix: string; label: { en: string; cn: string }; beforeMyr: number; afterMyr: number }> =
@@ -440,10 +474,61 @@ export default function ProductDetail() {
           blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 89, afterMyr: 75 },
           boxed: { ...PURCHASE_OPTIONS.boxed, beforeMyr: 599, afterMyr: 569 },
         }
-      : product.id === '8'
+      : product.id === '8' || product.id === '7'
         ? {
             blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 69, afterMyr: 55 },
-            boxed: { ...PURCHASE_OPTIONS.boxed, beforeMyr: 319, afterMyr: 289 },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-10',
+              label: { en: 'Full case 10 pcs', cn: '端盒 10个' },
+              beforeMyr: 319,
+              afterMyr: 289,
+            },
+          }
+      : product.id === '11' || product.id === '12'
+        ? {
+            blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 69, afterMyr: 55 },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-6',
+              label: { en: 'Full case 6 pcs', cn: '端盒 6个' },
+              beforeMyr: 194,
+              afterMyr: 172,
+            },
+          }
+      : product.id === '13'
+        ? {
+            blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 69, afterMyr: 55 },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-6',
+              label: { en: 'Full case 6 pcs', cn: '端盒 6个' },
+              beforeMyr: 259,
+              afterMyr: 225,
+            },
+          }
+      : product.id === '9'
+        ? {
+            blind: {
+              ...PURCHASE_OPTIONS.blind,
+              cartIdSuffix: 'single-bag-2uniq',
+              label: {
+                en: 'Single blind bag (2 unique plush pcs)',
+                cn: '单个盲袋【内含2只不重复】',
+              },
+              beforeMyr: 69,
+              afterMyr: 55,
+            },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-10bags-20pcs',
+              label: {
+                en: 'Full case (10 bags, 20 plush pcs)',
+                cn: '端盒【共十袋20只】',
+              },
+              beforeMyr: 369,
+              afterMyr: 339,
+            },
           }
       : isPinguDuoProduct
       ? {
@@ -550,7 +635,14 @@ export default function ProductDetail() {
       : null;
   const selectedAfterUsd =
     hasTwoOptions && selectedPurchase
-      ? (!isSquidwardSeriesProduct && !isPinguDuoProduct && purchaseOption === 'boxed' && currency === 'TWD'
+      ? (!isSquidwardSeriesProduct &&
+          !isPinguDuoProduct &&
+          product.id !== '11' &&
+          product.id !== '12' &&
+          product.id !== '13' &&
+          product.id !== '9' &&
+          purchaseOption === 'boxed' &&
+          currency === 'TWD'
           ? 3088 / unitsPerUsd.TWD
           : selectedPurchase.afterMyr / unitsPerUsd.MYR)
       : null;
@@ -582,7 +674,16 @@ export default function ProductDetail() {
   const isMiffyRatingsProduct = product.id === '20';
   const numericProductId = Number(product.id);
   const generatedReviewCount = Number.isFinite(numericProductId) ? 80 + ((numericProductId * 17) % 260) : 147;
-  const totalReviews = isPinguMiniTheaterProduct ? 17 : generatedReviewCount;
+  const totalReviews =
+    product.id === '8'
+      ? 1
+      : product.id === '11' || product.id === '12' || product.id === '13'
+        ? 15
+        : product.id === '9'
+          ? 233
+          : isPinguMiniTheaterProduct
+            ? 17
+            : generatedReviewCount;
   const encodedProductFolder = productFolder ? encodeURIComponent(productFolder) : '';
   const ratingImageVersionSuffix = id === '3' ? '?v=20260502-r1' : '';
   const ratingImageBasePath = encodedProductFolder
@@ -629,6 +730,36 @@ export default function ProductDetail() {
       ? [
           '/products/%E6%AF%94%E5%A5%87%E5%A0%A1%20%E7%AB%A0%E9%B1%BC%E5%93%A5%E7%9A%84%E4%B8%80%E5%A4%A9%E7%B3%BB%E5%88%97/desc%20pic/Screenshot%202026-04-15%20010318.png',
           '/products/%E6%AF%94%E5%A5%87%E5%A0%A1%20%E7%AB%A0%E9%B1%BC%E5%93%A5%E7%9A%84%E4%B8%80%E5%A4%A9%E7%B3%BB%E5%88%97/desc%20pic/Screenshot%202026-04-15%20010334.png',
+        ]
+      : productFolder === '麦兜和朋友们排排坐系列'
+      ? [
+          `/products/${encodeURIComponent('麦兜和朋友们排排坐系列')}/desc%20pic/1.png`,
+          `/products/${encodeURIComponent('麦兜和朋友们排排坐系列')}/desc%20pic/2.png`,
+        ]
+      : productFolder === '轻松小熊'
+      ? [
+          `/products/${encodeURIComponent('轻松小熊')}/desc%20pic/1.png`,
+          `/products/${encodeURIComponent('轻松小熊')}/desc%20pic/2.png`,
+        ]
+      : productFolder === '胆大党高速婆婆盲盒'
+      ? [
+          `/products/${encodeURIComponent('胆大党高速婆婆盲盒')}/desc%20pic/1.png`,
+          `/products/${encodeURIComponent('胆大党高速婆婆盲盒')}/desc%20pic/2.png`,
+        ]
+      : productFolder === '海底乐趣香薰挂饰系列'
+      ? [
+          `/products/${encodeURIComponent('海底乐趣香薰挂饰系列')}/desc%20pic/1.png`,
+          `/products/${encodeURIComponent('海底乐趣香薰挂饰系列')}/desc%20pic/2.png`,
+        ]
+      : productFolder === '比奇堡的居民们星光独白系列'
+      ? [
+          `/products/${encodeURIComponent('比奇堡的居民们星光独白系列')}/desc%20pic/1.png`,
+          `/products/${encodeURIComponent('比奇堡的居民们星光独白系列')}/desc%20pic/2.png`,
+        ]
+      : productFolder === '比奇堡里有什么系列'
+      ? [
+          `/products/${encodeURIComponent('比奇堡里有什么系列')}/desc%20pic/1.png`,
+          `/products/${encodeURIComponent('比奇堡里有什么系列')}/desc%20pic/2.png`,
         ]
       : [
           '/products/Pingu%20MINI%20MEME/decs%20pic/Screenshot%202026-04-14%20001907.png',
@@ -732,6 +863,150 @@ export default function ProductDetail() {
           image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/2.png`,
         },
       ]
+    : product.id === '7'
+    ? [
+        {
+          badge: language === 'cn' ? '全款图鉴' : 'FULL LINEUP',
+          title: language === 'cn' ? '全员集结 麦兜经典重现' : 'All Together — McDull Classics Return',
+          body:
+            language === 'cn'
+              ? '全系列经典角色可爱登场！不仅有各种神态的麦兜，更有阿美、阿辉、菇时倾情加盟。快来集齐整套，重温童年那份纯真与感动。'
+              : 'Beloved characters step into the spotlight in adorable form—not just McDull in many moods, but also Ah Mei, Ah Fai, and Gu Shi. Collect the full set and relive the pure joy of childhood.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+        {
+          badge: language === 'cn' ? '场景灵感' : 'EVERYDAY FUN',
+          title: language === 'cn' ? '解锁萌粒 趣玩百变陪伴' : 'Tiny Charms, Big Fun — Play Your Way',
+          body:
+            language === 'cn'
+              ? '不仅是摆件，更是生活里的“小确幸”。可吸附于相框、稳坐键盘、点缀水杯盖，随时随地开启可爱暴击，点亮你的每一个日常。'
+              : 'More than desk decor—they’re little sparks of joy. Stick them on a photo frame, perch them on your keyboard, or crown a mug lid. Cute hits anywhere, lighting up ordinary days.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: highlightImagePaths[1] ?? (productImages[1] ?? product.imageUrl),
+        },
+      ]
+    : product.id === '8'
+    ? [
+        {
+          badge: language === 'cn' ? '全款展示' : 'FULL DISPLAY',
+          title: language === 'cn' ? '缤纷雪酪色 治愈系全员集结' : 'Parfait Pastels — The Full Crew',
+          body:
+            language === 'cn'
+              ? '多款高颜值马卡龙色系呈现，更有神秘隐藏款（Chaser）等待解锁。每一只都自带治愈气场，点亮你的缤纷心情。'
+              : 'A lineup of gorgeous macaron tones, plus a mysterious Chaser hidden style to hunt. Each mini figure brings its own soothing charm to brighten your day.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+        {
+          badge: language === 'cn' ? '盲盒规则' : 'BLIND BOX RULES',
+          title: language === 'cn' ? '心动拆盒 开启专属惊喜' : 'Unbox the Thrill — Your Surprise Awaits',
+          body:
+            language === 'cn'
+              ? '整盒含8个盲盒，独立保密包装，未拆封前无人知晓盒中款式。1:64的惊喜概率，快来试试手气，迎接属于你的幸运隐藏款！'
+              : 'Each full case contains 8 blind boxes, each sealed in private packaging—no one knows the style until you open it. A 1-in-64 shot at the surprise Chaser—try your luck and chase your lucky hidden pull!',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: highlightImagePaths[1] ?? (productImages[1] ?? product.imageUrl),
+        },
+      ]
+    : product.id === '9'
+    ? [
+        {
+          badge: language === 'cn' ? '使用场景图' : 'LIFESTYLE',
+          title: language === 'cn' ? '强力磁吸 随心装点趣生活' : 'Strong Magnets — Style Your Everyday',
+          body:
+            language === 'cn'
+              ? '背面自带磁吸设计，无论是冰箱、黑板还是金属壁挂，随处可贴。不仅是实用的便签夹，更是提升居家幸福感的解压小物件，让你的日常充满奇思妙想。'
+              : 'Magnetic backs stick easily to fridges, chalkboards, or metal wall grids—wherever you need a pop of fun. More than a handy memo clip: a little stress-relief charm that makes home feel brighter and more playful.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+        {
+          badge: language === 'cn' ? '全款图鉴图' : 'FULL LINEUP',
+          title: language === 'cn' ? '名场面复刻 海绵宝宝全员报到' : 'Iconic Scenes — The Whole Bikini Bottom Crew',
+          body:
+            language === 'cn'
+              ? '深度还原比奇堡经典造型！从“章鱼哥梦想墓碑”到“路障派大星”，每一款都是行走的表情包。超全款式满足收集欲，让动画里的幽默感瞬间填满你的生活空间。'
+              : 'Faithful sculpts of Bikini Bottom classics—from “Squidward’s dream gravestone” to “traffic-cone Patrick,” every piece is a walking meme. Collect the full lineup and let the show’s humor take over your desk, shelf, and daily life.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: highlightImagePaths[1] ?? (productImages[1] ?? product.imageUrl),
+        },
+      ]
+    : product.id === '11'
+    ? [
+        {
+          badge: language === 'cn' ? '全款展示' : 'FULL DISPLAY',
+          title: language === 'cn' ? '高能还原 搞怪婆婆名场面' : 'High-Energy Sculpts — Turbo Granny’s Greatest Hits',
+          body:
+            language === 'cn'
+              ? '全系列 6 款造型灵动重现！从“狼吞虎咽”到“面部风暴”，精准捕捉高速婆婆的每一个魔性瞬间。独特招财猫造型，横扫沉闷，为你的桌面增添不一样的“邪性”萌感。'
+              : 'Six lively sculpts revive the line—from “wolfing it down” to “facial storm,” every meme-worthy Turbo Granny beat lands on point. Lucky-cat twists clear desk boredom with mischievous charm.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+        {
+          badge: language === 'cn' ? '盲盒规则' : 'BLIND BOX RULES',
+          title: language === 'cn' ? '端盒必齐 开启都市传说' : 'Full Case — Lock In the Urban Legend',
+          body:
+            language === 'cn'
+              ? '单盒随机抽取，整盒含 6 个盲盒。该系列无隐藏款，整盒入手即可一次性集齐所有常规款式，百分之百告别重复，让收藏体验更顺畅。'
+              : 'Singles are random; a full case has 6 blind boxes. No hidden chase in this line—one full case completes every regular design with zero dupes for a smoother collecting run.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: highlightImagePaths[1] ?? (productImages[1] ?? product.imageUrl),
+        },
+      ]
+    : product.id === '12'
+    ? [
+        {
+          badge: language === 'cn' ? '全款展示' : 'FULL DISPLAY',
+          title: language === 'cn' ? '比奇堡香气 毛绒挂饰全员报到' : 'Bikini Bottom Vibes — Scented Plush Charms',
+          body:
+            language === 'cn'
+              ? '海绵宝宝正版海底乐趣主题，多款毛绒挂饰搭配香薰元素，软萌手感适合包挂、车挂与送礼。系列共 6 款常规造型，每一只都自带比奇堡的轻松俏皮。'
+              : 'Official SpongeBob “undersea fun” scented plush pendants—soft, giftable, and perfect for bags or rearview charm. Six regular designs capture Bikini Bottom playfulness.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+        {
+          badge: language === 'cn' ? '盲盒规则' : 'BLIND BOX RULES',
+          title: language === 'cn' ? '单抽惊喜 端盒一次集齐' : 'Random Pulls or One Full Case',
+          body:
+            language === 'cn'
+              ? '随机盲盒 1 个为保密包装，拆盒前款式未知；端盒含 6 个盲盒，整盒入手可一次性集齐本系列常规款，减少重复、收藏更省心。'
+              : 'Each single is sealed at random; a full case contains 6 blind boxes so you can complete the regular lineup in one go with fewer duplicates.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: highlightImagePaths[1] ?? (productImages[1] ?? product.imageUrl),
+        },
+      ]
+    : product.id === '13'
+    ? [
+        {
+          badge: language === 'cn' ? '全款展示' : 'FULL DISPLAY',
+          title:
+            language === 'cn'
+              ? '永生花手办 记录心动瞬间'
+              : 'Preserved-Flower Figures — Capture Every Heartbeat Moment',
+          body:
+            language === 'cn'
+              ? '全系列包含 6 款常规款与 1 款隐藏款。从「娇羞宝」到限定「网抑鱼」，每款角色手持不同色彩的永生花，将经典动画形象与浪漫美学完美结合，是礼赠或收藏的不二之选。'
+              : 'Six regular designs plus one hidden chase—from “Shy Bao” to the limited “Melancholy Fish,” each figure holds preserved flowers in its own palette. Classic Bikini Bottom charm meets romantic aesthetics—ideal to gift or collect.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: highlightImagePaths[0] ?? (productImages[0] ?? product.imageUrl),
+        },
+        {
+          badge: language === 'cn' ? '盲盒规则' : 'BLIND BOX RULES',
+          title:
+            language === 'cn'
+              ? '星光独白 开启比奇堡浪漫奇遇'
+              : 'Starlight Monologue — A Romantic Bikini Bottom Adventure',
+          body:
+            language === 'cn'
+              ? '海绵宝宝正版授权，一整盒含 6 个盲盒。每一款均含有精美永生花，采用独立保密包装。1:96 的隐藏款概率，诚邀你一同解锁这份来自深海的浪漫独白。'
+              : 'Officially licensed SpongeBob—a full case contains 6 blind boxes. Each includes exquisite preserved flowers in sealed, confidential packaging. Chase odds are 1 in 96—unlock this romantic monologue from the deep sea.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: highlightImagePaths[1] ?? (productImages[1] ?? product.imageUrl),
+        },
+      ]
     : [
         {
           badge: language === 'cn' ? '优质体验' : 'PREMIUM EXPERIENCE',
@@ -769,7 +1044,7 @@ export default function ProductDetail() {
   let ratingCards = [
     {
       id: 'rating-1',
-      name: 'A-Ting',
+      name: '刘浩',
       date: '4/14/2026',
       rating: 5,
       text:
@@ -782,7 +1057,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-2',
-      name: 'Mia Chen',
+      name: '阿琪',
       date: '4/12/2026',
       rating: 5,
       text:
@@ -795,7 +1070,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-3',
-      name: '小米 Hsu',
+      name: 'David Wang',
       date: '4/11/2026',
       rating: 5,
       text:
@@ -808,7 +1083,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-4',
-      name: 'Coco Lin',
+      name: '阿乐',
       date: '4/10/2026',
       rating: 4,
       text:
@@ -821,7 +1096,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-5',
-      name: '阿乐 Wang',
+      name: 'Marco Chen',
       date: '4/9/2026',
       rating: 5,
       text:
@@ -834,7 +1109,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-6',
-      name: 'Yuki Tsai',
+      name: '年糕',
       date: '4/8/2026',
       rating: 5,
       text:
@@ -847,7 +1122,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-7',
-      name: '小鹿 Chou',
+      name: 'Felix',
       date: '4/7/2026',
       rating: 4,
       text:
@@ -860,7 +1135,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-8',
-      name: 'Nana H.',
+      name: '可可',
       date: '4/6/2026',
       rating: 5,
       text:
@@ -873,7 +1148,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-9',
-      name: '阿Q',
+      name: 'Ivy',
       date: '4/5/2026',
       rating: 5,
       text:
@@ -886,7 +1161,7 @@ export default function ProductDetail() {
     },
     {
       id: 'rating-10',
-      name: 'Vivi Kuo',
+      name: '用户6688',
       date: '4/4/2026',
       rating: 5,
       text:
@@ -900,16 +1175,16 @@ export default function ProductDetail() {
   ];
   if (isPinguMiniTheaterProduct) {
     const pinguMiniNames = [
-      '小葵',
-      'Ariel Hsu',
-      '阿庭',
-      'Momo Lin',
-      '77 Chen',
-      'Yuki',
-      '阿鹿',
-      'Nina Tsai',
-      '小彤',
-      'Vivi Kuo',
+      '小林',
+      '阿伟',
+      'Cici',
+      'David',
+      '糯米',
+      'Anna',
+      'Ken哥',
+      '婷婷',
+      'Chris',
+      '阿豪',
     ];
     const pinguMiniTextsCn = [
       '这组真的可爱，脸的表情很有戏，摆桌上会一直看。',
@@ -942,7 +1217,7 @@ export default function ProductDetail() {
     }));
   }
   if (isTextOnlyRatingsProduct) {
-    const petSceneNames = ['柴柴控99', '云养狗阿喵', 'NekoMomo', '狗狗日报', 'MiuMiu宅', '吃土也要买', 'PawPaw', '泡面研究员', '夏夜晚风'];
+    const petSceneNames = ['养狗的小王', '阿毛', '用户656789', '老李', 'Cathy', '阿橘', '匿名', 'Jenny', '黑柴爸'];
     const petSceneStyles = [
       '【床】已开盒确认款',
       '【食物】已开盒确认款',
@@ -976,18 +1251,25 @@ export default function ProductDetail() {
       'Perfect for miniature collectors and desk scene styling.',
       'Friends keep asking for the link. The whole set looks complete.',
     ];
-    ratingCards = ratingCards.slice(0, 9).map((card, idx) => ({
-      ...card,
-      name: petSceneNames[idx] ?? card.name,
-      text: language === 'cn' ? (petSceneTextsCn[idx] ?? card.text) : (petSceneTextsEn[idx] ?? card.text),
-      style: `${language === 'cn' ? '款式：' : 'item type: '}${petSceneStyles[idx] ?? '【床】已开盒确认款'}`,
-      item: product.name[language],
-      image: '',
+    const petSceneCount = Math.min(
+      petSceneNames.length,
+      petSceneStyles.length,
+      petSceneTextsCn.length,
+      petSceneTextsEn.length
+    );
+    ratingCards = Array.from({ length: petSceneCount }, (_, idx) => ({
+      id: `pet-rating-${idx + 1}`,
+      name: petSceneNames[idx],
+      date: `4/${28 - idx}/2026`,
       rating: idx === 3 || idx === 7 ? 4 : 5,
+      text: language === 'cn' ? petSceneTextsCn[idx] : petSceneTextsEn[idx],
+      item: product.name[language],
+      style: `${language === 'cn' ? '款式：' : 'item type: '}${petSceneStyles[idx]}`,
+      image: '',
     }));
   }
   if (isMixedRatingsProduct) {
-    const catNames = ['喵喵子', '阿庭Hsu', '团子控', 'Rina Chen', '奶油爪爪', '小鹿Lin', '77喵', 'Momo K.'];
+    const catNames = ['猫奴阿琪', '小林', '匿名用户', 'Amy', '老陈', '妞妞妈', 'David', '阿花'];
     const catStyles = [
       '【1号】已开盒确认款/未拆袋',
       '【2号】已开盒确认款/未拆袋',
@@ -1030,7 +1312,7 @@ export default function ProductDetail() {
     }));
   }
   if (isStrawberryCafeRatingsProduct) {
-    const cafeNames = ['草莓牛乳', 'Mika Chen', '甜点脑袋', 'Alyssa', '云朵奶油', '小莓', 'Kiki Hsu', 'Momo', '阿玉'];
+    const cafeNames = ['草莓控Amy', '小林', '匿名', '阿雯', 'David', '用户8821', 'Jenny', '小吴', '阿Ken'];
     const cafeStyles = [
       '【1号】已开盒确认款',
       '【3号】已开盒确认款',
@@ -1076,7 +1358,7 @@ export default function ProductDetail() {
     }));
   }
   if (isBurgerTextRatingsProduct) {
-    const burgerNames = ['汉堡日记', 'Momo酱', '阿鹿', '小莓汽水', 'Rina Kuo', '可乐冰块', 'Kiki Lin', 'Pocky'];
+    const burgerNames = ['阿杰', 'momo', '匿名买家', 'Kevin', '小李', '王小姐', '阿豪', 'Chris'];
     const burgerStyles = [
       '【1号】已开盒确认款/未拆袋',
       '【2号】已开盒确认款/未拆袋',
@@ -1119,7 +1401,7 @@ export default function ProductDetail() {
     }));
   }
   if (isMiffyRatingsProduct) {
-    const miffyNames = ['兔兔控阿圆', 'Mina L.', '奶芙子', 'Yuki Hsu', '小莓团子', 'Coco喵', 'Aki Chen', '77Momo', '糯米兔', 'Nori K.', '阿软', 'Luna Lin'];
+    const miffyNames = ['阿May', '小林', 'momo', 'Cici', '阿伟', 'Anna', 'David', '匿名', 'Jenny', 'Ken', 'Amy', '小王'];
     const miffyStyles = [
       '【1号】开盒确认款',
       '【2号】开盒确认款',
@@ -1175,15 +1457,15 @@ export default function ProductDetail() {
   }
   if (isPinguCameraBagProduct) {
     const cameraBagNames = [
-      '小雨',
-      'Mina Hsu',
-      '阿鱼 Lin',
-      'Kiki Chen',
-      '饼干',
-      'Joanne Tsai',
-      'Abao',
-      '小悠',
-      'Rita Kuo',
+      '岚岚',
+      'Lisa',
+      '阿K',
+      'Rena',
+      '苏打饼',
+      'Jo',
+      '阿朴',
+      '晚星',
+      'Rita',
     ];
     const cameraBagTextsCn = [
       '包包比我想像中能装，手机+钥匙+唇膏都放得下，日常出门很够用。',
@@ -1207,27 +1489,30 @@ export default function ProductDetail() {
       'Color is close to listing photos with no major mismatch.',
       'Bought it as a gift and my friend loved it immediately.',
     ];
-    ratingCards = ratingCards.slice(0, 9).map((card, idx) => ({
-      ...card,
-      name: cameraBagNames[idx] ?? card.name,
-      text: language === 'cn' ? (cameraBagTextsCn[idx] ?? card.text) : (cameraBagTextsEn[idx] ?? card.text),
-      style: language === 'cn' ? '款式：Pingu相机毛绒斜挎包' : 'item type: Pingu Plush Camera Crossbody Bag',
-      image: ratingImagePaths[idx] ?? card.image,
+    const cameraBagCount = Math.min(cameraBagNames.length, cameraBagTextsCn.length, cameraBagTextsEn.length);
+    ratingCards = Array.from({ length: cameraBagCount }, (_, idx) => ({
+      id: `camera-rating-${idx + 1}`,
+      name: cameraBagNames[idx],
+      date: `4/${28 - idx}/2026`,
       rating: idx === 2 || idx === 7 ? 4 : 5,
+      text: language === 'cn' ? cameraBagTextsCn[idx] : cameraBagTextsEn[idx],
+      item: product.name[language],
+      style: language === 'cn' ? '款式：Pingu相机毛绒斜挎包' : 'item type: Pingu Plush Camera Crossbody Bag',
+      image: ratingImagePaths[idx] ?? '',
     }));
   }
   if (isSiamFridgeMagnetBlindBagProduct) {
     const siamNames = [
-      '晴晴喵',
-      'Riko Tan',
-      '阿悦',
-      'Mina Luo',
-      '小橙子',
-      'Kira Wen',
-      '团团酱',
-      'Nori Chan',
-      '沐沐',
-      'Eri Q.',
+      '柚子',
+      '阿K',
+      'momo',
+      '陈同学',
+      '666',
+      '小王',
+      'Lily',
+      '阿珍',
+      'Jason',
+      '匿名用户',
     ];
     const siamStyles = [
       '随机盲袋1个',
@@ -1276,6 +1561,613 @@ export default function ProductDetail() {
       image: ratingImagePaths[idx] ?? '',
     }));
   }
+  if (product.id === '7') {
+    const mcdullNames = ['阿明', 'momo_688', '陈女士', 'Jason Lee', '豆豆', '王小姐', 'Kevin', '张小华', '匿名买家', '阿杰'];
+    const mcdullBoxedStyleLabel = language === 'cn' ? '端盒 10个' : 'Full case 10 pcs';
+    const mcdullStyles = [
+      PURCHASE_OPTIONS.blind.label[language],
+      PURCHASE_OPTIONS.blind.label[language],
+      mcdullBoxedStyleLabel,
+      PURCHASE_OPTIONS.blind.label[language],
+      mcdullBoxedStyleLabel,
+      PURCHASE_OPTIONS.blind.label[language],
+      PURCHASE_OPTIONS.blind.label[language],
+      mcdullBoxedStyleLabel,
+      PURCHASE_OPTIONS.blind.label[language],
+      mcdullBoxedStyleLabel,
+    ];
+    const mcdullTextsCn = [
+      '萌粒比想像中还可爱，排排坐摆一排很疗愈。',
+      '随机一盒抽到喜欢的角色，包装也完整。',
+      '端盒一次收齐，放车上当小摆件刚刚好。',
+      '做工细节不错，颜色跟页面差不多。',
+      '送给朋友当礼物，对方说超有梗很喜欢。',
+      '小小一颗不占空间，办公桌摆着心情会变好。',
+      '正版质感在线，没有廉价塑料感。',
+      '整盒端很划算，陈列起来很有系列感。',
+      '拆盒仪式感不错，会再回购其他系列。',
+      '当车载小摆件很稳，朋友上车都会问哪里买。',
+    ];
+    const mcdullTextsEn = [
+      'Cuter than expected. A full row display is very soothing.',
+      'Random single pulled a favorite character. Packaging was intact.',
+      'Full case is perfect for car dash mini displays.',
+      'Nice details and colors close to the listing.',
+      'Gifted to a friend and they loved the vibe.',
+      'Tiny footprint on desk and very mood-lifting.',
+      'Authentic feel — no cheap plastic vibe.',
+      'Full case feels worth it and looks cohesive on display.',
+      'Fun unboxing experience. Planning to buy more lines.',
+      'Works great in the car; passengers always ask where to buy.',
+    ];
+    ratingCards = mcdullNames.map((name, idx) => ({
+      id: `mcdull-rating-${idx + 1}`,
+      name,
+      date: `5/${12 - (idx % 10)}/${2026}`,
+      rating: idx === 3 ? 4 : 5,
+      text: language === 'cn' ? mcdullTextsCn[idx] : mcdullTextsEn[idx],
+      item: product.name[language],
+      style: `${language === 'cn' ? '款式：' : 'item type: '}${mcdullStyles[idx]}`,
+      image: ratingImagePaths[idx] ?? '',
+    }));
+  }
+  if (product.id === '8') {
+    const rilakkumaBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${PURCHASE_OPTIONS.blind.label[language]}`;
+    ratingCards = [
+      {
+        id: 'rilakkuma-rating-1',
+        name: language === 'cn' ? '阿琳' : 'Amy Lin',
+        date: '5/3/2026',
+        rating: 5,
+        text:
+          language === 'cn'
+            ? '雪酪色系实物比图更温柔，马卡龙配色摆一排超治愈；拆到隐藏款那天开心一整晚，已准备端盒凑齐。'
+            : 'The yogurt-parfait palette looks even softer in person—macaron tones lined up are pure therapy. Pulling the Chaser made my night; already planning a full case.',
+        item: product.name[language],
+        style: rilakkumaBlindStyle,
+        image: '',
+      },
+    ];
+  }
+  if (product.id === '9') {
+    const bbBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const bbBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    ratingCards = BB9_REVIEW_SEED.map((row, idx) => ({
+      id: row.id,
+      name: row.name,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? bbBoxedStyle : bbBlindStyle,
+      image: ratingImagePaths[idx % 8] ?? '',
+    }));
+  }
+  if (product.id === '11') {
+    const dandanBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const dandanBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const dandanRows: Array<{
+      id: string;
+      nameCn: string;
+      nameEn: string;
+      date: string;
+      rating: number;
+      textCn: string;
+      textEn: string;
+      boxed: boolean;
+    }> = [
+      {
+        id: 'dandan-rating-1',
+        nameCn: '陈女士',
+        nameEn: 'Carol Chen',
+        date: '5/4/2026',
+        rating: 5,
+        textCn: '单抽就抽到想要的款，婆婆表情雕得太有戏，摆在显示器旁每天看都不腻。',
+        textEn: 'First blind pull nailed the pose I wanted—her expression is hilariously on-brand beside my monitor.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-2',
+        nameCn: '阿伟',
+        nameEn: 'Wei L.',
+        date: '5/3/2026',
+        rating: 5,
+        textCn: '端盒 6 个齐活，无隐藏也不遗憾，常规款每一只都想留。',
+        textEn: 'Full case of six completed the set—no chase needed; every regular sculpt is a keeper.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-3',
+        nameCn: 'momo酱',
+        nameEn: 'momo_xu',
+        date: '5/2/2026',
+        rating: 4,
+        textCn: '外盒一点点压痕，里面没问题，涂装边缘处理得很干净。',
+        textEn: 'Minor corner ding on the shipper, figures inside are spotless with clean paint edges.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-4',
+        nameCn: '小李同学',
+        nameEn: 'David Li',
+        date: '5/1/2026',
+        rating: 5,
+        textCn: '招财猫那款太邪典可爱了，朋友来家里都问链接。',
+        textEn: 'The lucky-cat twist is weird-cute perfection—friends keep asking where I bought it.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-5',
+        nameCn: '王大头',
+        nameEn: 'Wang D.',
+        date: '4/30/2026',
+        rating: 5,
+        textCn: '物流比预计快，拆盒像在拆小剧场，仪式感满分。',
+        textEn: 'Arrived earlier than quoted—unboxing felt like opening a tiny stage set.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-6',
+        nameCn: '匿名用户8821',
+        nameEn: 'Guest8821',
+        date: '4/29/2026',
+        rating: 4,
+        textCn: '整体满意，有一只底座略松，自己点胶固定后很稳。',
+        textEn: 'Happy overall; one base was a touch loose—tiny glue dot fixed it solid.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-7',
+        nameCn: 'Jason',
+        nameEn: 'Jason Ng',
+        date: '4/28/2026',
+        rating: 5,
+        textCn: '和动画里的夸张神态对得上，收藏柜里一眼就能认出来。',
+        textEn: 'Expressions match the anime chaos—recognizable the second you spot them in a cabinet.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-8',
+        nameCn: '婷婷',
+        nameEn: 'Ting W.',
+        date: '4/27/2026',
+        rating: 5,
+        textCn: '端盒一次集齐常规款，没有重复，强迫症表示舒适。',
+        textEn: 'One case locked every regular style with zero dupes—collector brain at peace.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-9',
+        nameCn: '阿俊',
+        nameEn: 'Jun Mok',
+        date: '4/26/2026',
+        rating: 4,
+        textCn: '颜色比官图略饱和一点，但实物更上镜。',
+        textEn: 'Colors read a bit richer than promo shots, but they photograph even better.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-10',
+        nameCn: '睡不醒的KK',
+        nameEn: 'KK Chan',
+        date: '4/25/2026',
+        rating: 5,
+        textCn: '客服回答很细，帮我确认端盒就是全套常规款，下单更安心。',
+        textEn: 'Support walked me through the case contents—felt safe pulling the trigger on a full case.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-11',
+        nameCn: '麦兜粉阿妈',
+        nameEn: 'Auntie May',
+        date: '4/24/2026',
+        rating: 5,
+        textCn: '单抽试水成功，已经准备再端一盒送同好。',
+        textEn: 'Random single was a win—already planning another case as a gift for a fellow fan.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-12',
+        nameCn: '阿Sam',
+        nameEn: 'Sam Ho',
+        date: '4/23/2026',
+        rating: 5,
+        textCn: '摆在车上也不晃，胶贴+防滑垫自己加一层更稳。',
+        textEn: 'Stable on my dash with a little extra grip tape—no rattles on bumpy roads.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-13',
+        nameCn: '豆豆爸',
+        nameEn: 'Ben Cheung',
+        date: '4/22/2026',
+        rating: 4,
+        textCn: '想要的那只第二抽才出，过程刺激但可接受。',
+        textEn: 'Chased one specific sculpt—landed on the second try. Thrilling but fair.',
+        boxed: false,
+      },
+      {
+        id: 'dandan-rating-14',
+        nameCn: '小林',
+        nameEn: 'Ivy Lam',
+        date: '4/21/2026',
+        rating: 5,
+        textCn: '整盒端给对象的，对方说拆到第三盒就开始尖叫好笑。',
+        textEn: 'Gifted a full case—partner started laughing-screaming by the third box.',
+        boxed: true,
+      },
+      {
+        id: 'dandan-rating-15',
+        nameCn: 'Amy不踩雷',
+        nameEn: 'Amy Y.',
+        date: '4/20/2026',
+        rating: 5,
+        textCn: '细节对得起正版，面部风暴那款神态绝了。',
+        textEn: 'Official-level detail—the “facial storm” face sculpt is absolutely unhinged in the best way.',
+        boxed: false,
+      },
+    ];
+    ratingCards = dandanRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? dandanBoxedStyle : dandanBlindStyle,
+      image: '',
+    }));
+  }
+  if (product.id === '12') {
+    const seaBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const seaBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const seaRows: Array<{
+      id: string;
+      nameCn: string;
+      nameEn: string;
+      date: string;
+      rating: number;
+      textCn: string;
+      textEn: string;
+      boxed: boolean;
+    }> = [
+      {
+        id: 'sea-rating-1',
+        nameCn: '张小文',
+        nameEn: 'Zoe Cheung',
+        date: '5/4/2026',
+        rating: 5,
+        textCn: '毛绒手感很软，香味不冲，挂包上天天被同事问链接。',
+        textEn: 'Plush is super soft and the scent isn’t harsh—coworkers keep asking where I got the bag charm.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-2',
+        nameCn: '很会买的Lisa',
+        nameEn: 'Lisa K.',
+        date: '5/3/2026',
+        rating: 5,
+        textCn: '端盒 6 个一次齐，送人自留都合适，包装也干净。',
+        textEn: 'Full case of six completed the set—great for gifts or keeping; packaging arrived clean.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-3',
+        nameCn: '阿Ken',
+        nameEn: 'Ken Wong',
+        date: '5/2/2026',
+        rating: 4,
+        textCn: '单抽没抽到最想要那只，但整体做工对得起正版。',
+        textEn: 'Random single wasn’t my top pick, but build quality feels legit for an official line.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-4',
+        nameCn: '用户293847',
+        nameEn: 'User293847',
+        date: '5/1/2026',
+        rating: 5,
+        textCn: '车挂用了一个月香味还在，夏天开空调也不闷。',
+        textEn: 'Still smells nice after a month as a car charm—doesn’t feel stuffy with AC on.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-5',
+        nameCn: 'Chris',
+        nameEn: 'Chris P.',
+        date: '4/30/2026',
+        rating: 5,
+        textCn: '比奇堡配色很正，拍照很上镜，准备再端一盒送闺蜜。',
+        textEn: 'Colors read true to Bikini Bottom and photograph well—ordering another case for my bestie.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-6',
+        nameCn: '陈怡静',
+        nameEn: 'Elaine Tan',
+        date: '4/29/2026',
+        rating: 4,
+        textCn: '有一只挂绳略短，自己换了延长绳后完美。',
+        textEn: 'One strap felt a bit short—swapped in an extender and it’s perfect now.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-7',
+        nameCn: '不加糖去冰',
+        nameEn: 'Alex Wu',
+        date: '4/28/2026',
+        rating: 5,
+        textCn: '拆盒仪式感不错，海绵宝宝粉可以闭眼入。',
+        textEn: 'Unboxing feels fun—easy recommend for SpongeBob fans.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-8',
+        nameCn: 'Raymond',
+        nameEn: 'Raymond Yeung',
+        date: '4/27/2026',
+        rating: 5,
+        textCn: '端盒无重复，强迫症舒适，摆在展示架上一排超可爱。',
+        textEn: 'Full case had zero dupes—collector brain happy; the lineup looks adorable on the shelf.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-9',
+        nameCn: '桃子',
+        nameEn: 'Peachie',
+        date: '4/26/2026',
+        rating: 4,
+        textCn: '物流比预计快一天，外盒有轻微折痕不影响里面。',
+        textEn: 'Arrived a day early; outer shipper had a light crease but insides were fine.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-10',
+        nameCn: '7878',
+        nameEn: 'User7878',
+        date: '4/25/2026',
+        rating: 5,
+        textCn: '客服确认端盒就是 6 个常规款，下单很安心。',
+        textEn: 'Support confirmed the case is six regular styles—felt safe checking out.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-11',
+        nameCn: '阿布',
+        nameEn: 'Abu Lim',
+        date: '4/24/2026',
+        rating: 5,
+        textCn: '香味偏清新挂，不是廉价甜腻那种，挂衣柜也合适。',
+        textEn: 'Scent leans fresh, not cheap-sweet—works even hanging in a closet.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-12',
+        nameCn: '大番薯',
+        nameEn: 'Eric Fan',
+        date: '4/23/2026',
+        rating: 5,
+        textCn: '送给小朋友的，拆到海绵宝宝那款当场尖叫。',
+        textEn: 'Gifted to a kid—they squealed when the SpongeBob pull showed up.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-13',
+        nameCn: 'Nick',
+        nameEn: 'Nick L.',
+        date: '4/22/2026',
+        rating: 4,
+        textCn: '想要派大星那款多抽了两次，刺激但可接受。',
+        textEn: 'Chased Patrick—took two singles. Thrilling but fair.',
+        boxed: false,
+      },
+      {
+        id: 'sea-rating-14',
+        nameCn: 'Susan',
+        nameEn: 'Susan M.',
+        date: '4/21/2026',
+        rating: 5,
+        textCn: '正版标和吊牌齐全，细节刺绣很工整。',
+        textEn: 'Official tags intact; embroidery stitching is neat.',
+        boxed: true,
+      },
+      {
+        id: 'sea-rating-15',
+        nameCn: '小陈不沉',
+        nameEn: 'Chen C.',
+        date: '4/20/2026',
+        rating: 5,
+        textCn: '挂在后视镜上也不挡视线，毛绒体积刚刚好。',
+        textEn: 'Doesn’t block the mirror as a rearview charm—size is just right.',
+        boxed: false,
+      },
+    ];
+    ratingCards = seaRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? seaBoxedStyle : seaBlindStyle,
+      image: '',
+    }));
+  }
+  if (product.id === '13') {
+    const starBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const starBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const starRows: Array<{
+      id: string;
+      nameCn: string;
+      nameEn: string;
+      date: string;
+      rating: number;
+      textCn: string;
+      textEn: string;
+      boxed: boolean;
+    }> = [
+      {
+        id: 'star-rating-1',
+        nameCn: '海星软糖',
+        nameEn: 'Coral H.',
+        date: '5/4/2026',
+        rating: 5,
+        textCn: '单抽就拆到超有梗的那只，摆桌上像在做小剧场旁白，比奇堡味很正。',
+        textEn: 'Random single nailed a meme-perfect sculpt—feels like a tiny monologue on my desk.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-2',
+        nameCn: 'Miu酱',
+        nameEn: 'Miu R.',
+        date: '5/3/2026',
+        rating: 5,
+        textCn: '端盒 6 个一次齐，没有重复，收藏癖表示很舒适。',
+        textEn: 'Full case of six—no dupes, collector brain at peace.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-3',
+        nameCn: '老周',
+        nameEn: 'Zhou W.',
+        date: '5/2/2026',
+        rating: 4,
+        textCn: '外盒保护得不错，里面八角尖尖，准备再送朋友一盒。',
+        textEn: 'Shipper held up; corners clean—already planning a gift case.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-4',
+        nameCn: '阿茶',
+        nameEn: 'Cha L.',
+        date: '5/1/2026',
+        rating: 5,
+        textCn: '“星光独白”这个主题很戳我，每个神情都像在吐槽生活又可爱又好笑。',
+        textEn: 'The “monologue” theme hits—each expression feels like a cute roast of daily life.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-5',
+        nameCn: 'kiki_88',
+        nameEn: 'Kiki L.',
+        date: '4/30/2026',
+        rating: 5,
+        textCn: '客服确认端盒就是 6 个常规款，下单更安心，物流也比预计快。',
+        textEn: 'Support confirmed the case contents—shipping arrived faster than quoted.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-6',
+        nameCn: '菠萝屋住户',
+        nameEn: 'Pat K.',
+        date: '4/29/2026',
+        rating: 4,
+        textCn: '单抽没中隐藏情绪款但常规也好看，涂装边缘挺干净。',
+        textEn: 'No lucky chase on the single, but the regular sculpt still looks great with clean paint edges.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-7',
+        nameCn: '小北',
+        nameEn: 'Bei N.',
+        date: '4/28/2026',
+        rating: 5,
+        textCn: '整组摆开像一排小舞台，灯光下颜色很上镜，准备再入端盒凑展示墙。',
+        textEn: 'Lined up like a mini stage—photographs beautifully under warm light.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-8',
+        nameCn: '匿名买家3321',
+        nameEn: 'Guest3321',
+        date: '4/27/2026',
+        rating: 5,
+        textCn: '正版标齐全，分量感OK，不是轻飘飘那种空心塑料感。',
+        textEn: 'Official tags intact; feels solid—not hollow cheap plastic.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-9',
+        nameCn: '阿豪',
+        nameEn: 'Hao M.',
+        date: '4/26/2026',
+        rating: 4,
+        textCn: '想要的那只第二盒才出，过程刺激但可接受。',
+        textEn: 'Chased one character—landed on the second box. Thrilling but fair.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-10',
+        nameCn: '蟹黄堡信徒',
+        nameEn: 'Burger Believer',
+        date: '4/25/2026',
+        rating: 5,
+        textCn: '端盒送同好，对方拆到第三盒开始尖叫好笑，氛围拉满。',
+        textEn: 'Gifted a full case—friend started laughing-screaming by the third box.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-11',
+        nameCn: 'Yuki',
+        nameEn: 'Yuki T.',
+        date: '4/24/2026',
+        rating: 5,
+        textCn: '细节对得起官方，面部神态很“有戏”，摆显示器旁边每天看一看都开心。',
+        textEn: 'Official-level detail—expressions are hilariously on-brand beside my monitor.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-12',
+        nameCn: '大卫',
+        nameEn: 'David Y.',
+        date: '4/23/2026',
+        rating: 5,
+        textCn: '比奇堡老粉表示：这套把居民们的“戏精”气质抓得很准。',
+        textEn: 'Longtime fan: this line really nails the residents’ dramatic energy.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-13',
+        nameCn: '璐璐',
+        nameEn: 'Lu Chen',
+        date: '4/22/2026',
+        rating: 4,
+        textCn: '有一只底座略松，自己点胶固定后很稳，整体还是满意。',
+        textEn: 'One base was a touch loose—tiny glue dot fixed it solid.',
+        boxed: false,
+      },
+      {
+        id: 'star-rating-14',
+        nameCn: '泡泡',
+        nameEn: 'Bobo',
+        date: '4/21/2026',
+        rating: 5,
+        textCn: '颜色比官图略温柔一点，实物更耐看，适合长期摆柜。',
+        textEn: 'Colors read a bit softer than promo shots—in a good, long-term-display way.',
+        boxed: true,
+      },
+      {
+        id: 'star-rating-15',
+        nameCn: '阿凯',
+        nameEn: 'Kai S.',
+        date: '4/20/2026',
+        rating: 5,
+        textCn: '第一次买这个系列，拆盒仪式感很强，已经想集齐整组了。',
+        textEn: 'First time on this line—unboxing felt great; already want the full set.',
+        boxed: false,
+      },
+    ];
+    ratingCards = starRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? starBoxedStyle : starBlindStyle,
+      image: '',
+    }));
+  }
   const uniqueRatingCards = Array.from(new Map(ratingCards.map((card) => [card.id, card])).values());
   const sortedRatingCards = [...uniqueRatingCards].sort((a, b) => {
     if (selectedSort === 'highest') return b.rating - a.rating;
@@ -1287,6 +2179,8 @@ export default function ProductDetail() {
     }
     return 0;
   });
+  const visibleRatingCards =
+    product.id === '9' && !bb9ReviewsExpanded ? sortedRatingCards.slice(0, 8) : sortedRatingCards;
   const whatsappMessage =
     language === 'cn'
       ? `你好，我想咨询这个产品：${product.name.cn}。\n我想了解这个款式是否有货，以及运费（西马/东马/国外）和最终总价。谢谢！`
@@ -1494,14 +2388,6 @@ export default function ProductDetail() {
 
                     const isFront = offset === 0;
                     const zIndex = productImages.length - offset;
-                    const polaroidDisplaySrc =
-                      product.id === '8' &&
-                      purchaseOption &&
-                      isFront &&
-                      currentImageIndex === 0 &&
-                      product8StyleImageUrl
-                        ? product8StyleImageUrl
-                        : img;
 
                     return (
                       <motion.div
@@ -1533,7 +2419,8 @@ export default function ProductDetail() {
                         <div className="w-full h-full bg-white p-3 md:p-4 pb-24 md:pb-28 shadow-[0_30px_70px_rgba(0,0,0,0.2)] border-2 border-bakery-pink-light/20 rounded-sm transform-gpu">
                           <div className="w-full h-full overflow-hidden bg-bakery-cream/20 rounded-sm relative">
                             <img 
-                              src={polaroidDisplaySrc} 
+                              key={`${idx}-${img}`}
+                              src={img}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = product.fallbackImage;
                               }}
@@ -1617,7 +2504,7 @@ export default function ProductDetail() {
                 >
                   <div className="w-full h-full overflow-hidden bg-bakery-cream/10">
                     <img 
-                      src={img} 
+                      src={img}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = product.fallbackImage;
                       }}
@@ -1925,14 +2812,38 @@ export default function ProductDetail() {
                 }
               >
                 <div className={`${(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:justify-self-start w-full' : (idx % 2 === 1 ? 'md:justify-self-end' : '')}`}>
-                  <div className={`rounded-[2rem] overflow-hidden bg-white border-[6px] border-white shadow-[0_12px_30px_rgba(0,0,0,0.08)] ${(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'w-full md:max-w-[760px]' : 'md:max-w-[520px]'}`}>
+                  <div
+                    className={`rounded-[2rem] overflow-hidden bg-white border-[6px] border-white shadow-[0_12px_30px_rgba(0,0,0,0.08)] ${
+                      (isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct)
+                        ? 'w-full md:max-w-[760px]'
+                        : product.id === '9'
+                          ? 'w-full max-w-[min(100%,520px)] flex justify-center'
+                          : (product.id === '7' || product.id === '8' || product.id === '11' || product.id === '12' || product.id === '13') && idx === 1
+                            ? 'w-fit max-w-full md:max-w-[520px]'
+                          : 'md:max-w-[520px]'
+                    }`}
+                  >
                     <img
                       src={block.image}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = product.fallbackImage;
                       }}
                       alt={block.title}
-                      className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct || isSiamFridgeMagnetBlindBagProduct) ? 'w-full aspect-square object-cover' : 'w-full aspect-[2/3] object-cover'}
+                      className={
+                        isPetDogMiniSceneProduct ||
+                        isPetCatMiniSceneProduct ||
+                        isStrawberryCafeProduct ||
+                        isBurgerSampleProduct ||
+                        isMiffyCafeProduct ||
+                        isPinguMiniTheaterProduct ||
+                        isSiamFridgeMagnetBlindBagProduct
+                          ? 'w-full aspect-square object-cover'
+                          : (product.id === '7' || product.id === '8' || product.id === '11' || product.id === '12' || product.id === '13') && idx === 1
+                            ? 'max-w-full w-auto h-auto object-contain bg-white block'
+                            : product.id === '9' && (idx === 0 || idx === 1)
+                              ? 'h-auto w-auto max-h-[min(92vh,1080px)] max-w-full object-contain bg-white'
+                            : 'w-full aspect-[2/3] object-cover'
+                      }
                       referrerPolicy="no-referrer"
                     />
                   </div>
@@ -1961,6 +2872,30 @@ export default function ProductDetail() {
                 <Bookmark className="h-4 w-4 md:h-5 md:w-5 text-pink-500" />
                 {language === 'cn' ? `基于 ${totalReviews}+ 位满意顾客` : `Based on ${totalReviews}+ happy customers`}
               </p>
+              {((product.id === '11' && productFolder === '胆大党高速婆婆盲盒') ||
+                (product.id === '12' && productFolder === '海底乐趣香薰挂饰系列') ||
+                (product.id === '13' && productFolder === '比奇堡的居民们星光独白系列')) && (
+                <div className="dandan-ratings-banner mt-6 md:mt-8 flex justify-center px-0 sm:px-2">
+                  <div className="relative w-full max-w-[min(280px,88vw)] aspect-[3/4] rounded-3xl overflow-hidden border border-bakery-pink-light/50 shadow-md bg-stone-100">
+                    <img
+                      src={`/products/${encodeURIComponent(productFolder ?? '')}/ratings/review-photo.png`}
+                      onError={(e) => {
+                        const el = e.target as HTMLImageElement;
+                        const base = `/products/${encodeURIComponent(productFolder ?? '')}/ratings`;
+                        if (el.dataset.fallback !== '1') {
+                          el.dataset.fallback = '1';
+                          el.src = `${base}/1.png`;
+                          return;
+                        }
+                        el.closest('.dandan-ratings-banner')?.classList.add('hidden');
+                      }}
+                      alt={language === 'cn' ? '买家实拍' : 'Buyer photo'}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3 text-bakery-brown">
@@ -2016,26 +2951,25 @@ export default function ProductDetail() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 items-start">
-              {sortedRatingCards.map((card, idx) => (
+              {visibleRatingCards.map((card) => (
                 <article
                   key={card.id}
-                  className={`bg-white border border-bakery-pink-light/40 rounded-2xl overflow-hidden shadow-sm ${
-                    (!isTextOnlyRatingsProduct && !isMixedRatingsProduct && !isStrawberryCafeRatingsProduct && !isBurgerTextRatingsProduct && !isMiffyRatingsProduct)
-                      ? (idx % 3 === 1 ? 'lg:mt-8' : idx % 3 === 2 ? 'lg:mt-4' : '')
-                      : ''
-                  }`}
+                  className="bg-white border border-bakery-pink-light/40 rounded-2xl overflow-hidden shadow-sm"
                 >
-                  {!isPinguMiniTheaterProduct && !isTextOnlyRatingsProduct && card.image && (
-                    <img
-                      src={card.image}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = product.fallbackImage;
-                      }}
-                      alt={card.item}
-                      className="w-full aspect-square object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  )}
+                  {card.image ? (
+                    <div className="rating-card-photo relative aspect-[3/4] w-full bg-stone-100">
+                      <img
+                        src={card.image}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).closest('.rating-card-photo')?.classList.add('hidden');
+                        }}
+                      />
+                    </div>
+                  ) : null}
                   <div className="p-4">
                     <div className="flex items-center justify-between gap-3 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
@@ -2090,6 +3024,23 @@ export default function ProductDetail() {
                 </article>
               ))}
             </div>
+            {product.id === '9' && sortedRatingCards.length > 8 && (
+              <div className="flex justify-center mt-8 md:mt-10">
+                <button
+                  type="button"
+                  onClick={() => setBb9ReviewsExpanded((v) => !v)}
+                  className="px-8 py-3 rounded-2xl font-black text-bakery-brown border-2 border-bakery-pink-light bg-white hover:border-pink-400 hover:text-pink-600 transition-colors shadow-sm"
+                >
+                  {bb9ReviewsExpanded
+                    ? language === 'cn'
+                      ? '收起评价'
+                      : 'Show fewer'
+                    : language === 'cn'
+                      ? `展开更多评价（还有 ${sortedRatingCards.length - 8} 条）`
+                      : `Show more reviews (${sortedRatingCards.length - 8} more)`}
+                </button>
+              </div>
+            )}
           </section>
           </div>
         </div>
@@ -2124,7 +3075,7 @@ export default function ProductDetail() {
                     />
                   </div>
                   <h3 className="font-bold text-bakery-brown mb-1 line-clamp-1">{item.name[language]}</h3>
-                  <p className="text-pink-500 font-black">{formatPrice(item.price)}</p>
+                  <p className="text-pink-500 font-black">{formatPrice(getCardPriceUsd(item, unitsPerUsd))}</p>
                 </Link>
               ))}
             </div>
