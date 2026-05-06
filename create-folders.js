@@ -18,9 +18,9 @@ const products = [
   'peppas-red-car',
   'mickey-mouse-plush',
   'donald-duck-figure',
-  'pikachu-action-figure',
+  '别动我的齐刘海',
   'charmander-plush',
-  'doraemon-gadget-set',
+  '蜡笔小新大尾巴二代盲盒',
   'hello-kitty-doll'
 ];
 

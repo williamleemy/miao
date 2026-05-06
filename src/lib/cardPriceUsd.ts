@@ -13,6 +13,8 @@ export function getCardPriceUsd(product: ProductRow, unitsPerUsd: UnitsPerUsdRat
   if (product.id === '20') return 10 / unitsPerUsd.MYR;
   if (product.id === '22') return 69.9 / unitsPerUsd.MYR;
   if (product.id === '23') return 55.9 / unitsPerUsd.MYR;
+  if (product.id === '15') return 30 / unitsPerUsd.MYR;
+  if (product.id === '18') return 55 / unitsPerUsd.MYR;
   if (product.id === '8' || product.id === '7' || product.id === '11' || product.id === '12' || product.id === '13' || product.id === '9') return 55 / unitsPerUsd.MYR;
   if (product.id === '3') return 23 / unitsPerUsd.MYR;
   if (product.id === '5') return 60 / unitsPerUsd.MYR;

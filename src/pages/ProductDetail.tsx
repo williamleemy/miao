@@ -25,7 +25,7 @@ import { MOCK_PRODUCTS } from '../lib/data';
 import { AnimatePresence } from 'motion/react';
 import ShippingSubsidyModal from '../components/ShippingSubsidyModal';
 
-type PurchaseOptionKey = 'blind' | 'boxed';
+type PurchaseOptionKey = 'blind' | 'blind2' | 'boxed';
 const PRODUCT_ONE_STYLE_OPTIONS = [
   '【床】已开盒确认款',
   '【食物】已开盒确认款',
@@ -283,6 +283,7 @@ export default function ProductDetail() {
   const [reviewText, setReviewText] = useState('');
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Record<string, boolean>>({});
   const [shippingSubsidyModalOpen, setShippingSubsidyModalOpen] = useState(false);
   const thumbStripRef = useRef<HTMLDivElement | null>(null);
   const sortMenuRef = useRef<HTMLDivElement | null>(null);
@@ -303,10 +304,11 @@ export default function ProductDetail() {
     setPurchaseOption(null);
     setSelectedCustomStyle(null);
     setBb9ReviewsExpanded(false);
+    setExpandedReviewIds({});
   }, [id]);
 
   useEffect(() => {
-    if (id === '23' || ((id === '8' || id === '7' || id === '11' || id === '12' || id === '13') && purchaseOption)) {
+    if (id === '23' || ((id === '8' || id === '7' || id === '11' || id === '12' || id === '13' || id === '15' || id === '18' || id === '16' || id === '17' || id === '19') && purchaseOption)) {
       setCurrentImageIndex(0);
     }
   }, [id, purchaseOption]);
@@ -357,6 +359,16 @@ export default function ProductDetail() {
       ? ['2', '3', '4', '5']
     : productFolder === '比奇堡的居民们星光独白系列'
       ? ['2', '3', '4', '5']
+    : productFolder === '弹簧小蜥蜴盲盒'
+      ? ['2', '3', '4']
+      : productFolder === '自嘲熊和朋友们精神状态系列'
+        ? ['2', '3', '4', '5']
+    : productFolder === '哈利波特系列手表盲盒'
+      ? ['2', '3', '4', '5']
+    : productFolder === '别动我的齐刘海'
+      ? ['2', '3', '4', '5', '6', '7']
+    : productFolder === '蜡笔小新大尾巴二代盲盒'
+      ? ['2', '3', '4', '5', '6']
       : ['2', '3', '4', 'last'];
   const product23StyleImage =
     id === '23' && productFolder && purchaseOption
@@ -367,16 +379,26 @@ export default function ProductDetail() {
     (id === '14' || id === '3' || id === '5' || id === '11' || id === '9' || id === '12' || id === '13') && productFolder
       ? `/products/${encodeURIComponent(productFolder)}/main.png${productImageVersionSuffix}`
       : product?.imageUrl;
-  /** 双档盲盒（7/8/11/12/13）：选中款式后轮播为「款式预览 → main 海报 → 2–5 图」，首张仍是款式对应图，第二张保留 main */
+  /** 双档盲盒（7/8/11/12/13/15/16/18）：选中款式后轮播为「款式预览 → main 海报 → 2–5 图」，首张仍是款式对应图，第二张保留 main */
   const twoTierBlindBoxStyleImageUrl =
     product &&
-    (product.id === '8' || product.id === '7' || product.id === '11' || product.id === '12' || product.id === '13') &&
+    (product.id === '8' || product.id === '7' || product.id === '11' || product.id === '12' || product.id === '13' || product.id === '15' || product.id === '18' || product.id === '16' || product.id === '17' || product.id === '19') &&
     productFolder &&
     purchaseOption
       ? `/products/${encodeURIComponent(productFolder)}/${encodeURIComponent(
           purchaseOption === 'blind'
             ? '随机盲盒 1个.png'
-            : product.id === '11' || product.id === '12' || product.id === '13'
+            : purchaseOption === 'blind2'
+              ? product.id === '19'
+                ? '随机盲盒 2个.png'
+                : '随机盲盒 2个 （不重复）.png'
+            : product.id === '11' || product.id === '12' || product.id === '13' || product.id === '18'
+              ? '端盒 6个.png'
+              : product.id === '16'
+                ? '端盒 12个.png'
+              : product.id === '15'
+                ? '端盒 4个.png'
+            : product.id === '17' || product.id === '19'
               ? '端盒 6个.png'
               : '端盒 10个.png'
         )}`
@@ -464,7 +486,12 @@ export default function ProductDetail() {
       product.id === '11' ||
       product.id === '12' ||
       product.id === '13' ||
+      product.id === '16' ||
+      product.id === '17' ||
+      product.id === '19' ||
       product.id === '9' ||
+      product.id === '18' ||
+      product.id === '15' ||
       isSiamFridgeMagnetBlindBagProduct) &&
     !isPinguCameraBagProduct;
   const isSquidwardSeriesProduct = product.id === '6';
@@ -505,6 +532,93 @@ export default function ProductDetail() {
               label: { en: 'Full case 6 pcs', cn: '端盒 6个' },
               beforeMyr: 259,
               afterMyr: 225,
+            },
+          }
+      : product.id === '15'
+        ? {
+            blind: {
+              ...PURCHASE_OPTIONS.blind,
+              cartIdSuffix: 'blind-1',
+              label: { en: 'Random blind box 1 pc', cn: '随机盲盒 1个' },
+              beforeMyr: 55,
+              afterMyr: 30,
+            },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-4',
+              label: { en: 'Full case 4 pcs', cn: '端盒 4个' },
+              beforeMyr: 79,
+              afterMyr: 60,
+            },
+          }
+      : product.id === '18'
+        ? {
+            blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 69, afterMyr: 55 },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-6',
+              label: { en: 'Full case 6 pcs', cn: '端盒 6个' },
+              beforeMyr: 219,
+              afterMyr: 189,
+            },
+          }
+      : product.id === '16'
+        ? {
+            blind: { ...PURCHASE_OPTIONS.blind, beforeMyr: 85, afterMyr: 65 },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-12',
+              label: { en: 'Full case 12 pcs', cn: '端盒 12个' },
+              beforeMyr: 529,
+              afterMyr: 499,
+            },
+          }
+      : product.id === '17'
+        ? {
+            blind: {
+              ...PURCHASE_OPTIONS.blind,
+              cartIdSuffix: 'blind-1',
+              label: { en: 'Random blind box 1 pc', cn: '随机盲盒 1个' },
+              beforeMyr: 119,
+              afterMyr: 97,
+            },
+            blind2: {
+              ...PURCHASE_OPTIONS.blind,
+              cartIdSuffix: 'blind-2-unique',
+              label: { en: 'Random blind box 2 pcs (no duplicates)', cn: '随机盲盒 2个 （不重复）' },
+              beforeMyr: 209,
+              afterMyr: 187,
+            },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-6',
+              label: { en: 'Full case 6 pcs', cn: '端盒 6个' },
+              beforeMyr: 599,
+              afterMyr: 549,
+            },
+          }
+      : product.id === '19'
+        ? {
+            blind: {
+              ...PURCHASE_OPTIONS.blind,
+              cartIdSuffix: 'blind-1',
+              label: { en: 'Random blind box 1 pc', cn: '随机盲盒 1个' },
+              beforeMyr: 65,
+              afterMyr: 55,
+            },
+            blind2: {
+              ...PURCHASE_OPTIONS.blind,
+              cartIdSuffix: 'blind-2',
+              label: { en: 'Random blind box 2 pcs', cn: '随机盲盒 2个' },
+              beforeMyr: 109,
+              afterMyr: 99,
+            },
+            boxed: {
+              ...PURCHASE_OPTIONS.boxed,
+              cartIdSuffix: 'boxed-6',
+              label: { en: 'Full case 6 pcs', cn: '端盒 6个' },
+              beforeMyr: 289,
+              afterMyr: 259,
             },
           }
       : product.id === '9'
@@ -859,6 +973,101 @@ export default function ProductDetail() {
           body: language === 'cn'
             ? '特别推出限定“打工田中”隐藏款，配以晶莹剔透的闪粉滴胶工艺。光影下流光溢彩，收藏价值与颜值双倍升级，等待幸运的你来开启。'
             : 'Featuring the limited hidden edition “Working Tanaka,” paired with crystal-clear glitter resin craftsmanship. It shimmers beautifully under light, delivering both elevated collectible value and visual appeal.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/2.png`,
+        },
+      ]
+    : product.id === '15'
+    ? [
+        {
+          badge: language === 'cn' ? '款式展示' : 'STYLE PREVIEW',
+          title: language === 'cn' ? '弹簧小蜥蜴盲盒 现货开售' : 'Spring Lizard Blind Box In Stock',
+          body:
+            language === 'cn'
+              ? '可选两种购买方式：随机盲盒 1个，或端盒 4个。选中上方款式按钮后，会同步切换到对应款式预览图。'
+              : 'Two purchase options are available: random blind box (1 pc) or full case (4 pcs). Selecting a style above will switch to the matching preview image.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/1.png`,
+        },
+      ]
+    : product.id === '18'
+    ? [
+        {
+          badge: language === 'cn' ? '全系列图鉴图' : 'FULL LINEUP',
+          title: language === 'cn' ? '情绪收集家 Chiikawa 治愈登场' : 'Chiikawa, Collector of Moods',
+          body:
+            language === 'cn'
+              ? '全系列共 6 款经典表情，从“快乐满满”到“恍恍惚惚”，每一个都是你的精神状态缩影。高品质细腻涂装，立体还原表情包神韵，快来认领属于你的那份可爱共鸣。'
+              : 'The full lineup includes 6 iconic expressions, from joyful energy to dazed little moods. Fine-quality paintwork and expressive sculpting bring each meme-like face to life.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/1.png`,
+        },
+      ]
+    : product.id === '16'
+    ? [
+        {
+          badge: language === 'cn' ? '学院款展示图' : 'HOUSE STYLES',
+          title: language === 'cn' ? '名创优品 × 哈利·波特 开启腕间魔法' : 'MINISO × Harry Potter Wrist Magic',
+          body:
+            language === 'cn'
+              ? '四大学院经典配色与院徽图腾交织，复古金属质感搭配精致皮革表带。每一秒刻度，都是对霍格沃茨精神的致敬，让魔法世界的情怀在日常穿戴中优雅流露。'
+              : 'Classic house colors and crest emblems are paired with vintage metal textures and refined leather straps. Every tick pays tribute to Hogwarts spirit.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/1.png`,
+        },
+        {
+          badge: language === 'cn' ? '全系列图鉴图' : 'FULL LINEUP',
+          title: language === 'cn' ? '全员集结 揭秘惊喜隐藏款' : 'Full Lineup with Hidden Surprises',
+          body:
+            language === 'cn'
+              ? '全系列涵盖海格的蛋糕、9¾车站、金色飞贼等经典元素手办表。包含大、小隐藏款设计，多样化造型打破常规想象。心动拆盒，看看哪一份魔法奇遇会率先降临在你的手中！'
+              : 'The lineup includes iconic elements like Hagrid’s cake, Platform 9¾, and the Golden Snitch. Big and mini hidden editions add extra surprise to each unboxing.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/2.png`,
+        },
+      ]
+    : product.id === '17'
+    ? [
+        {
+          badge: language === 'cn' ? '配件清单图' : 'ACCESSORY LIST',
+          title: language === 'cn' ? '豪华配置 随心开启换装乐趣' : 'Premium Setup for Dress-Up Fun',
+          body:
+            language === 'cn'
+              ? '每一盒均包含丰富的专属配件：3对随机替换手型、带妆植发头、可动素体、成套服装及精致鞋袜等共计10项配件。不仅是精致的摆件，更是可以高度互动的指尖艺术，让你享受亲手打造角色的成就感。'
+              : 'Each box includes rich accessories: 3 random pairs of replacement hands, rooted makeup head, articulated body, full outfit, and delicate shoes and socks (10 items total). It is both a display piece and an interactive fingertip artwork.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/1.png`,
+        },
+        {
+          badge: language === 'cn' ? '全款展示图' : 'FULL LINEUP',
+          title: language === 'cn' ? '心动图鉴 多变少女感拉满' : 'Heart-Stealing Lineup with Versatile Girlcore Style',
+          body:
+            language === 'cn'
+              ? '全系列包含 6 款常规形象与 2 款惊艳隐藏款（失真泪、电子天使）。从甜系“草莓千层”到酷系“仿真小兔”，每款娃娃都拥有独特的风格穿搭，精准戳中你的审美，开启治愈系收藏之旅。'
+              : 'The full lineup includes 6 regular styles and 2 stunning hidden editions. From sweet strawberry vibes to cool rabbit-inspired looks, each doll has a unique fashion identity for a healing collectible journey.',
+          badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/2.png`,
+        },
+      ]
+    : product.id === '19'
+    ? [
+        {
+          badge: language === 'cn' ? '全款展示图' : 'FULL LINEUP',
+          title: language === 'cn' ? '变身萌兽 蜡笔小新动物派对' : 'Shinchan Animal Party',
+          body:
+            language === 'cn'
+              ? '全系列 7 款激萌登场！从小兔子到小松鼠，小新穿上毛绒“马甲”化身各种小动物。细腻的绒毛触感搭配生动的标志性表情，每一款都是这个春天最治愈的惊喜收藏。'
+              : 'All 7 styles are irresistibly cute. From bunny to squirrel looks, Shinchan transforms into plush animal friends with soft textures and iconic expressions.',
+          badgeClass: 'bg-[#a7ff9f] text-[#3d4b39]',
+          image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/1.png`,
+        },
+        {
+          badge: language === 'cn' ? '场景展示图' : 'SCENE PREVIEW',
+          title: language === 'cn' ? '自带挂绳 随时随地的吸睛好物' : 'With Strap, Eye-Catching Anywhere',
+          body:
+            language === 'cn'
+              ? '采用高品质金属挂环，轻松装点你的背包、钥匙或日常穿搭。让变身毛绒绒朋友的小新，陪你度过微凉的春日。无论是居家还是旅行，它都是你身边最亮眼的陪伴担当。'
+              : 'Built with a quality metal ring to style your bag, keys, and daily outfits. Whether at home or on trips, this fluffy Shinchan companion stands out.',
           badgeClass: 'bg-[#ffd7db] text-[#7f4b52]',
           image: `/products/${encodeURIComponent(productFolder ?? '')}/desc%20pic/2.png`,
         },
@@ -2168,6 +2377,258 @@ export default function ProductDetail() {
       image: '',
     }));
   }
+  if (product.id === '15') {
+    const lizardBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const lizardBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const lizardRows = [
+      {
+        id: 'lizard-rating-1',
+        nameCn: '小柚子',
+        nameEn: 'Yuzu',
+        date: '5/5/2026',
+        rating: 5,
+        textCn: '太可爱😍，萌死了😍',
+        textEn: 'So cute 😍 absolutely love it 😍',
+        boxed: false,
+        image: `${ratingImageBasePath}/1.png`,
+      },
+      {
+        id: 'lizard-rating-2',
+        nameCn: '阿霖',
+        nameEn: 'Lin',
+        date: '5/4/2026',
+        rating: 5,
+        textCn: '弹簧小蜥蜴的表情太戳了！手一碰就会轻轻弹起来，放桌上每天都解压。',
+        textEn: 'The springy little lizard is so charming! Tap it and it bounces up. Perfect for desk stress relief.',
+        boxed: false,
+        image: `${ratingImageBasePath}/2.png`,
+      },
+      {
+        id: 'lizard-rating-3',
+        nameCn: '团子',
+        nameEn: 'Tuanz',
+        date: '5/3/2026',
+        rating: 5,
+        textCn: '端盒开出来很齐，涂装细节很干净，整体质感比想象好，摆着很出片。',
+        textEn: 'The full case turned out so nice—clean paint details and better-than-expected quality. Looks great on display.',
+        boxed: true,
+        image: `${ratingImageBasePath}/3.png`,
+      },
+      {
+        id: 'lizard-rating-4',
+        nameCn: '阿桃',
+        nameEn: 'Tao',
+        date: '5/2/2026',
+        rating: 5,
+        textCn: '做工很稳，不会毛糙，手感也舒服。买来当车载摆件同事都说好看。',
+        textEn: 'Solid workmanship with a comfortable feel. I use it as a car dashboard charm—everyone says it looks great.',
+        boxed: false,
+        image: `${ratingImageBasePath}/4.png`,
+      },
+      {
+        id: 'lizard-rating-5',
+        nameCn: 'Q酱',
+        nameEn: 'QJ',
+        date: '5/1/2026',
+        rating: 5,
+        textCn: '拆开包装很完整，小蜥蜴超萌！抽到的款式我非常喜欢，越看越上头。',
+        textEn: 'Package arrived intact and the little lizard is super cute! The style I pulled is exactly what I wanted—can’t stop looking.',
+        boxed: true,
+        image: `${ratingImageBasePath}/5.png`,
+      },
+      {
+        id: 'lizard-rating-6',
+        nameCn: '阿喵',
+        nameEn: 'Mew',
+        date: '4/30/2026',
+        rating: 5,
+        textCn: '非常喜欢，质量和外观都很在线，值得入手！',
+        textEn: 'Really love it—quality and appearance are both on point. Definitely worth getting!',
+        boxed: false,
+        image: '',
+      },
+    ];
+    ratingCards = lizardRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? lizardBoxedStyle : lizardBlindStyle,
+      image: row.image,
+    }));
+  }
+  if (product.id === '16') {
+    const hpBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const hpBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const hpRows = [
+      {
+        id: 'hp-rating-1',
+        nameCn: '林嘉雯',
+        nameEn: 'Jiawen Lin',
+        date: '5/6/2026',
+        rating: 5,
+        textCn: '是正品！发货比想象快，我离得近隔天就收到了，加几块钱抽到了自推好喜欢',
+        textEn: 'Authentic product! Shipping was faster than expected, and I even pulled my favorite style.',
+        boxed: false,
+        image: `${ratingImageBasePath}/1.png`,
+      },
+      {
+        id: 'hp-rating-2',
+        nameCn: '周子晴',
+        nameEn: 'Ziqing Zhou',
+        date: '5/5/2026',
+        rating: 5,
+        textCn: '抽到了海德微，很可爱',
+        textEn: 'I pulled Hedwig, super cute.',
+        boxed: false,
+        image: `${ratingImageBasePath}/2.png`,
+      },
+      {
+        id: 'hp-rating-3',
+        nameCn: '陈伟杰',
+        nameEn: 'Weijie Chen',
+        date: '5/4/2026',
+        rating: 5,
+        textCn: '表盘细节做得很精致，学院元素很还原，日常戴出去也很吸睛。',
+        textEn: 'Dial details are very refined and the house elements are well recreated. Looks great for daily wear.',
+        boxed: true,
+        image: `${ratingImageBasePath}/3.png`,
+      },
+      {
+        id: 'hp-rating-4',
+        nameCn: '黄诗敏',
+        nameEn: 'Shimin Huang',
+        date: '5/3/2026',
+        rating: 5,
+        textCn: '端盒入手体验很好，包装完整，拆盒过程特别有仪式感，送礼也体面。',
+        textEn: 'Great full-case experience. Packaging arrived intact, and unboxing felt premium—perfect for gifting.',
+        boxed: true,
+        image: `${ratingImageBasePath}/4.png`,
+      },
+    ];
+    ratingCards = hpRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? hpBoxedStyle : hpBlindStyle,
+      image: row.image,
+    }));
+  }
+  if (product.id === '17') {
+    const bangsBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const bangsBlind2Style = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind2.label[language]}`;
+    const bangsBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const bangsRows = [
+      { id: 'bangs-rating-1', nameCn: '安安同学', nameEn: 'AnAn', date: '5/6/2026', rating: 5, textCn: '宝宝好可爱 脸没那么大!小小的很安心', textEn: 'So cute. The face is not oversized, compact and very pleasing.', styleKey: 'blind', image: `${ratingImageBasePath}/1.png` },
+      { id: 'bangs-rating-2', nameCn: '小葳', nameEn: 'Wei', date: '5/5/2026', rating: 5, textCn: '做工蛮精致的，孩子很喜欢，回购再有点优惠券就好啦', textEn: 'Craft quality is quite refined. My kid loves it. Would repurchase with a coupon.', styleKey: 'blind2', image: `${ratingImageBasePath}/2.png` },
+      { id: 'bangs-rating-3', nameCn: '阿沛', nameEn: 'Pei', date: '5/4/2026', rating: 5, textCn: '真的巨美巨萌 终于坚持到放学 回家就看到这小萌物 心情直接好了 这也太会做了 做的太好看了', textEn: 'Super pretty and super cute. Seeing it after school instantly fixed my mood.', styleKey: 'boxed', image: `${ratingImageBasePath}/3.png` },
+      { id: 'bangs-rating-4', nameCn: '小恩', nameEn: 'En', date: '5/3/2026', rating: 5, textCn: '萌之萌之！', textEn: 'Beyond adorable!', styleKey: 'blind', image: `${ratingImageBasePath}/4.png` },
+      { id: 'bangs-rating-5', nameCn: '米可可', nameEn: 'Miko', date: '5/2/2026', rating: 5, textCn: '好可爱！', textEn: 'So cute!', styleKey: 'blind2', image: `${ratingImageBasePath}/5.png` },
+      { id: 'bangs-rating-6', nameCn: '阿庭', nameEn: 'Ting', date: '5/1/2026', rating: 5, textCn: '齐刘海的比例很顺眼，拍近照不会有压脸感。', textEn: 'The bangs proportion looks great and photos nicely up close.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-7', nameCn: '凯西', nameEn: 'Kacy', date: '4/30/2026', rating: 5, textCn: '2个不重复这个选项超友善，一次抽就能搭一对。', textEn: 'The 2-unique option is great. One buy gives a nice pair.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-8', nameCn: '小妤', nameEn: 'Yu', date: '4/29/2026', rating: 5, textCn: '端盒6个摆一排真的疗愈，配色看着很舒服。', textEn: 'A full case of six looks very soothing on display.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-9', nameCn: '阿欣', nameEn: 'Hsin', date: '4/28/2026', rating: 4, textCn: '盒况正常，保护做得不错，到手没有压痕。', textEn: 'Box condition is good with proper protection.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-10', nameCn: '沐沐', nameEn: 'Mumu', date: '4/27/2026', rating: 5, textCn: '植发发量比想像自然，梳一梳就有层次。', textEn: 'Rooted hair looks natural and easy to style.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-11', nameCn: '小葵', nameEn: 'Kui', date: '4/26/2026', rating: 5, textCn: '脸型小小的很精致，不会有“头重脚轻”感。', textEn: 'Small face sculpt is refined and balanced.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-12', nameCn: '阿甯', nameEn: 'Ning', date: '4/25/2026', rating: 5, textCn: '衣服细节有惊喜，缝线跟纹理都在线。', textEn: 'Outfit details are impressive with clean texture.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-13', nameCn: '小瑜', nameEn: 'YuYu', date: '4/24/2026', rating: 5, textCn: '手型替换很顺，关节紧度刚好，摆姿势不费力。', textEn: 'Hand swapping is smooth and joints hold poses well.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-14', nameCn: 'NN妈咪', nameEn: 'NNMom', date: '4/23/2026', rating: 5, textCn: '给女儿当奖励，她直接抱去写作业桌旁边。', textEn: 'Bought as a reward and it went straight to the study desk.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-15', nameCn: '阿芯', nameEn: 'Hsinni', date: '4/22/2026', rating: 4, textCn: '物流慢半天但能接受，东西本体很好。', textEn: 'Shipping was slightly delayed but product quality is great.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-16', nameCn: '小梨', nameEn: 'Pearly', date: '4/21/2026', rating: 5, textCn: '端盒一次配齐很省心，适合有展示柜的人。', textEn: 'Full case is convenient if you maintain a display shelf.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-17', nameCn: 'KK', nameEn: 'KK', date: '4/20/2026', rating: 5, textCn: '细看眼妆很细致，拍特写也能扛住。', textEn: 'Eye makeup details hold up even in close-up photos.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-18', nameCn: '小岚', nameEn: 'Lan', date: '4/19/2026', rating: 5, textCn: '不是那种很塑料的廉价感，拿在手里有质感。', textEn: 'No cheap plastic feel, has solid hand feel.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-19', nameCn: '阿软', nameEn: 'Ruan', date: '4/18/2026', rating: 5, textCn: '配件给得足，换装玩起来时间过很快。', textEn: 'Accessories are generous and dress-up is fun.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-20', nameCn: '雨晴晴', nameEn: 'Rainy', date: '4/17/2026', rating: 5, textCn: '随机1个也很香，抽到的这只发型我超喜欢。', textEn: 'Even single random pull feels great. Love the hairstyle I got.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-21', nameCn: '阿布', nameEn: 'Bu', date: '4/16/2026', rating: 5, textCn: '包装固定做得扎实，开箱没有掉件。', textEn: 'Packaging is secure with no missing pieces.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-22', nameCn: '小菲', nameEn: 'Fei', date: '4/15/2026', rating: 5, textCn: '摆在键盘旁边刚刚好，大小很讨喜。', textEn: 'Perfect size beside a keyboard.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-23', nameCn: '软糖妹', nameEn: 'SoftCandy', date: '4/14/2026', rating: 4, textCn: '希望下次补货速度再快一点，款真的可爱。', textEn: 'Wish restock is faster next time. Designs are very cute.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-24', nameCn: '阿芽', nameEn: 'Ya', date: '4/13/2026', rating: 5, textCn: '特六可动真的有感，很多动作都能站稳。', textEn: 'Type-6 articulation is useful and poses stand well.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-25', nameCn: '米粒儿', nameEn: 'Mili', date: '4/12/2026', rating: 5, textCn: '和朋友合买2个不重复，分起来超刚好。', textEn: 'Bought 2-unique with a friend and split perfectly.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-26', nameCn: '小左', nameEn: 'Zo', date: '4/11/2026', rating: 5, textCn: '第一次买BJD盲盒，门槛很友好。', textEn: 'My first BJD blind box and very beginner-friendly.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-27', nameCn: '阿萌', nameEn: 'Meng', date: '4/10/2026', rating: 5, textCn: '隐藏款没中也不失望，常规款都很能打。', textEn: 'Didn’t pull a hidden one, still satisfied with regular styles.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-28', nameCn: '晴天妹', nameEn: 'SunnyM', date: '4/9/2026', rating: 5, textCn: '客服回讯息快，确认了不重复选项才下单，体验很好。', textEn: 'Support replied quickly and clarified the no-duplicate option.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-29', nameCn: '小默', nameEn: 'Mo', date: '4/8/2026', rating: 5, textCn: '脸部涂装很干净，越看越顺眼。', textEn: 'Face paint is clean and pleasant over time.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-30', nameCn: '阿喵喵', nameEn: 'MeowM', date: '4/7/2026', rating: 5, textCn: '端盒拿来送人超体面，朋友拆到停不下来。', textEn: 'Great as a gift set. Friend couldn’t stop unboxing.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-31', nameCn: '语语', nameEn: 'Yuyu', date: '4/6/2026', rating: 4, textCn: '有一只手型偏紧，热风稍微吹一下就顺了。', textEn: 'One hand joint was tight; quick warm-up fixed it.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-32', nameCn: '小奈', nameEn: 'Nai', date: '4/5/2026', rating: 5, textCn: '拍照很上镜，滤镜都不用开太重。', textEn: 'Very photogenic even with light filters.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-33', nameCn: '阿桃子', nameEn: 'Peachy', date: '4/4/2026', rating: 5, textCn: '成套服装穿脱顺，不会一拉就变形。', textEn: 'Outfits are easy to put on and remove without deforming.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-34', nameCn: '吱吱', nameEn: 'Zizi', date: '4/3/2026', rating: 5, textCn: '这个系列的少女感真的拿捏住了。', textEn: 'This line nails the soft girl vibe perfectly.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-35', nameCn: '小沫', nameEn: 'Momo', date: '4/2/2026', rating: 5, textCn: '盒内配件分类清楚，开盒体验很舒服。', textEn: 'Accessories are well sorted and unboxing feels great.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-36', nameCn: '阿圆', nameEn: 'Yuan', date: '4/1/2026', rating: 5, textCn: '带妆头细节比预期细很多，真的有惊喜。', textEn: 'Makeup head detail is finer than expected.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-37', nameCn: '咩咩酱', nameEn: 'MieMie', date: '3/31/2026', rating: 5, textCn: '抽到重复机率体感不高，2个不重复很适合新手。', textEn: '2-unique option is ideal for beginners.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-38', nameCn: '小可', nameEn: 'Keke', date: '3/30/2026', rating: 5, textCn: '做工稳定、配色耐看，摆久也不会腻。', textEn: 'Stable workmanship and durable color pairing.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-39', nameCn: '南瓜妹', nameEn: 'PumpkinM', date: '3/29/2026', rating: 4, textCn: '希望之后多一点发色版本，会更想再收。', textEn: 'Would love more hair color variants in the future.', styleKey: 'boxed', image: '' },
+      { id: 'bangs-rating-40', nameCn: '多多酱', nameEn: 'Dodo', date: '3/28/2026', rating: 5, textCn: '这款真的可爱到犯规，放哪都像小主角。', textEn: 'Unfairly cute. Looks like the main character anywhere.', styleKey: 'blind', image: '' },
+      { id: 'bangs-rating-41', nameCn: '阿柚', nameEn: 'You', date: '3/27/2026', rating: 5, textCn: '家里小朋友看了会自己帮她换装，互动感很强。', textEn: 'Kids enjoy changing outfits themselves. Very interactive.', styleKey: 'blind2', image: '' },
+      { id: 'bangs-rating-42', nameCn: '77酱', nameEn: 'Nana77', date: '3/26/2026', rating: 5, textCn: '已经回购第二次，收藏起来很有成就感。', textEn: 'Second purchase already. Collecting this line feels rewarding.', styleKey: 'boxed', image: '' },
+    ] as const;
+    ratingCards = bangsRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.styleKey === 'boxed' ? bangsBoxedStyle : row.styleKey === 'blind2' ? bangsBlind2Style : bangsBlindStyle,
+      image: row.image,
+    }));
+  }
+  if (product.id === '18') {
+    const bearBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const bearBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const bearRows = [
+      { id: 'bear-rating-1', nameCn: '奶盖星人', nameEn: 'CreamCap', date: '5/6/2026', rating: 5, textCn: '开盒第一只就戳中我，表情太有戏了，摆桌面每天都想拍照。', textEn: 'First pull already won me over. The expression is so dramatic and photo-ready.', boxed: false, image: `${ratingImageBasePath}/1.png` },
+      { id: 'bear-rating-2', nameCn: '困困岛主', nameEn: 'DrowseIsle', date: '5/5/2026', rating: 5, textCn: '这系列真的懂打工人精神状态，越看越上头。', textEn: 'This line totally gets office-life moods. I like it more every day.', boxed: false, image: `${ratingImageBasePath}/2.png` },
+      { id: 'bear-rating-3', nameCn: '反卷选手', nameEn: 'AntiGrind', date: '5/4/2026', rating: 5, textCn: '端盒入手很省心，做工细节很稳，脸部涂装很干净。', textEn: 'Full case was worth it. Build quality is solid and face paint is clean.', boxed: true, image: `${ratingImageBasePath}/3.png` },
+      { id: 'bear-rating-4', nameCn: '摸鱼队长', nameEn: 'ChillCaptain', date: '5/3/2026', rating: 5, textCn: '客服回复很快，包装保护到位，到手无磕碰。', textEn: 'Support replied quickly, packaging was secure, and everything arrived mint.', boxed: false, image: `${ratingImageBasePath}/4.png` },
+      { id: 'bear-rating-5', nameCn: '晚风存档', nameEn: 'NightArchive', date: '5/2/2026', rating: 5, textCn: '送朋友很合适，拆盒仪式感拉满，对方直接问链接。', textEn: 'Perfect as a gift. Unboxing felt premium and my friend asked for the link immediately.', boxed: true, image: `${ratingImageBasePath}/5.png` },
+      { id: 'bear-rating-6', nameCn: '云朵待机中', nameEn: 'CloudIdle', date: '5/1/2026', rating: 5, textCn: '实物比图更可爱，底座稳，放车里或书桌都很搭。', textEn: 'In person it looks even cuter. Stable base and great for desk or car display.', boxed: false, image: '' },
+    ];
+    ratingCards = bearRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.boxed ? bearBoxedStyle : bearBlindStyle,
+      image: row.image,
+    }));
+  }
+  if (product.id === '19') {
+    const shinBlindStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind.label[language]}`;
+    const shinBlind2Style = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.blind2.label[language]}`;
+    const shinBoxedStyle = `${language === 'cn' ? '款式：' : 'item type: '}${purchaseOptionsForProduct.boxed.label[language]}`;
+    const shinRows = [
+      { id: 'shin-rating-1', nameCn: '小羽毛', nameEn: 'Feather', date: '5/6/2026', rating: 5, textCn: '包装很好，抽到了最喜欢的那个飞鼠，很划算，毛茸茸的也很可爱。', textEn: 'Great packaging. I pulled my favorite flying squirrel style. Very worth it and super fluffy cute.', styleKey: 'blind', image: `${ratingImageBasePath}/1.png` },
+      { id: 'shin-rating-2', nameCn: 'Kiki麻麻', nameEn: 'KikiMama', date: '5/5/2026', rating: 5, textCn: '出隐藏了，结果把羊顶掉了，还得收个羊去😍', textEn: 'Pulled a hidden one and now I still need the sheep 😍', styleKey: 'blind2', image: `${ratingImageBasePath}/2.png` },
+      { id: 'shin-rating-3', nameCn: '阿宁', nameEn: 'Ning', date: '5/4/2026', rating: 5, textCn: '挺不错的物美价廉快递也很快满意', textEn: 'Very good value for money and shipping was fast. Satisfied.', styleKey: 'blind', image: '' },
+      { id: 'shin-rating-4', nameCn: 'MiloW', nameEn: 'Milo W.', date: '5/3/2026', rating: 5, textCn: '拆快递的时候就能感受到店家很用心，产品更是没得说，全五星好评！', textEn: 'You can feel the care from unboxing. Product quality is excellent. Full five stars!', styleKey: 'blind2', image: '' },
+      { id: 'shin-rating-5', nameCn: '小鹿班比', nameEn: 'Bambi', date: '5/2/2026', rating: 5, textCn: '这款书包挂件玩偶造型可爱精致，色彩搭配协调，材质柔软亲肤，做工精细无瑕疵。挂在书包上瞬间增添亮点，实用性与装饰性兼具，值得入手', textEn: 'Cute and refined bag charm with soft material and clean craftsmanship. Great as both practical and decorative piece.', styleKey: 'boxed', image: '' },
+      { id: 'shin-rating-6', nameCn: '阿畅', nameEn: 'Chang', date: '5/1/2026', rating: 5, textCn: '质量很好，满意', textEn: 'Great quality. Satisfied.', styleKey: 'blind', image: '' },
+      { id: 'shin-rating-7', nameCn: 'Wenyy', nameEn: 'Wenyy', date: '4/30/2026', rating: 5, textCn: '快递收到了，很不错，很喜欢，价格也便宜，下次再来', textEn: 'Parcel arrived. Really nice and affordable. Will buy again.', styleKey: 'blind2', image: '' },
+      { id: 'shin-rating-8', nameCn: '阿慧', nameEn: 'Huey', date: '4/29/2026', rating: 5, textCn: '随机2个真的方便，不用怕重复，配色都很可爱。', textEn: 'Random 2 pcs option is convenient and helps avoid duplicates.', styleKey: 'blind2', image: '' },
+      { id: 'shin-rating-9', nameCn: 'Lynn小编', nameEn: 'Lynn', date: '4/28/2026', rating: 4, textCn: '吊环质感不错，挂包上很稳，整体很讨喜。', textEn: 'Metal ring quality is nice and stable on bags.', styleKey: 'blind', image: '' },
+      { id: 'shin-rating-10', nameCn: '阿泰', nameEn: 'Ty', date: '4/27/2026', rating: 5, textCn: '端盒买来送人很体面，拆盒过程很有惊喜感。', textEn: 'Full case is great for gifting and unboxing is fun.', styleKey: 'boxed', image: '' },
+      { id: 'shin-rating-11', nameCn: 'CocoYap', nameEn: 'Coco Yap', date: '4/26/2026', rating: 5, textCn: '毛绒手感很好，做工细节在线，挂在钥匙上每天都想摸一下。', textEn: 'Plush touch is great with solid details. Love it on my keys.', styleKey: 'blind', image: '' },
+      { id: 'shin-rating-12', nameCn: '小琪', nameEn: 'Qi', date: '4/25/2026', rating: 5, textCn: '客服回复快，确认款式后下单很安心，整体体验不错。', textEn: 'Fast customer service and reassuring purchase experience.', styleKey: 'boxed', image: '' },
+    ] as const;
+    ratingCards = shinRows.map((row) => ({
+      id: row.id,
+      name: language === 'cn' ? row.nameCn : row.nameEn,
+      date: row.date,
+      rating: row.rating,
+      text: language === 'cn' ? row.textCn : row.textEn,
+      item: product.name[language],
+      style: row.styleKey === 'boxed' ? shinBoxedStyle : row.styleKey === 'blind2' ? shinBlind2Style : shinBlindStyle,
+      image: row.image,
+    }));
+  }
   const uniqueRatingCards = Array.from(new Map(ratingCards.map((card) => [card.id, card])).values());
   const sortedRatingCards = [...uniqueRatingCards].sort((a, b) => {
     if (selectedSort === 'highest') return b.rating - a.rating;
@@ -2180,7 +2641,7 @@ export default function ProductDetail() {
     return 0;
   });
   const visibleRatingCards =
-    product.id === '9' && !bb9ReviewsExpanded ? sortedRatingCards.slice(0, 8) : sortedRatingCards;
+    (product.id === '9' || product.id === '17') && !bb9ReviewsExpanded ? sortedRatingCards.slice(0, 8) : sortedRatingCards;
   const whatsappMessage =
     language === 'cn'
       ? `你好，我想咨询这个产品：${product.name.cn}。\n我想了解这个款式是否有货，以及运费（西马/东马/国外）和最终总价。谢谢！`
@@ -2532,7 +2993,7 @@ export default function ProductDetail() {
                 <span className="bg-pink-100 px-3 py-1 rounded-full">{product.category[language]}</span>
                 <div className="flex items-center gap-1 ml-2">
                   <Star className="h-4 w-4 fill-bakery-yellow text-bakery-yellow" />
-                  <span className="text-bakery-brown">4.9 ({totalReviews}+ reviews)</span>
+                  <span className="text-bakery-brown">{product.id === '16' ? '4.9 (4 reviews)' : product.id === '17' ? '4.9 (40+ reviews)' : product.id === '19' ? '4.9 (11+ reviews)' : '4.9 (10+ reviews)'}</span>
                 </div>
               </div>
               <h1 className="text-4xl md:text-5xl font-display font-black text-bakery-brown mb-4 leading-tight">
@@ -2806,12 +3267,14 @@ export default function ProductDetail() {
                 className={
                   (isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct)
                     ? 'max-w-[1180px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center'
+                    : product.id === '16'
+                      ? `grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center ${idx === 0 ? '' : 'md:[&>*:first-child]:order-2'}`
                     : `grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center ${
                         idx % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''
                       }`
                 }
               >
-                <div className={`${(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:justify-self-start w-full' : (idx % 2 === 1 ? 'md:justify-self-end' : '')}`}>
+                <div className={`${(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:justify-self-start w-full' : (product.id === '16' ? (idx === 0 ? '' : 'md:justify-self-end') : (idx % 2 === 1 ? 'md:justify-self-end' : ''))}`}>
                   <div
                     className={`rounded-[2rem] overflow-hidden bg-white border-[6px] border-white shadow-[0_12px_30px_rgba(0,0,0,0.08)] ${
                       (isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct)
@@ -2836,7 +3299,8 @@ export default function ProductDetail() {
                         isBurgerSampleProduct ||
                         isMiffyCafeProduct ||
                         isPinguMiniTheaterProduct ||
-                        isSiamFridgeMagnetBlindBagProduct
+                        isSiamFridgeMagnetBlindBagProduct ||
+                        product.id === '15'
                           ? 'w-full aspect-square object-cover'
                           : (product.id === '7' || product.id === '8' || product.id === '11' || product.id === '12' || product.id === '13') && idx === 1
                             ? 'max-w-full w-auto h-auto object-contain bg-white block'
@@ -2848,7 +3312,7 @@ export default function ProductDetail() {
                     />
                   </div>
                 </div>
-                <div className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:pr-3 text-left' : (idx % 2 === 1 ? 'md:pl-10 md:pr-0' : 'md:pl-4')}>
+                <div className={(isPetDogMiniSceneProduct || isPetCatMiniSceneProduct || isStrawberryCafeProduct || isBurgerSampleProduct || isMiffyCafeProduct || isPinguMiniTheaterProduct) ? 'md:pr-3 text-left' : (product.id === '16' ? (idx === 0 ? 'md:pl-4' : 'md:pl-0 md:pr-10') : (idx % 2 === 1 ? 'md:pl-10 md:pr-0' : 'md:pl-4'))}>
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] tracking-[0.15em] font-black mb-4 ${block.badgeClass}`}>
                     {block.badge}
                   </span>
@@ -2870,7 +3334,9 @@ export default function ProductDetail() {
               </h3>
               <p className="mt-3 inline-flex items-center gap-2 text-base md:text-xl font-bold text-bakery-brown/80">
                 <Bookmark className="h-4 w-4 md:h-5 md:w-5 text-pink-500" />
-                {language === 'cn' ? `基于 ${totalReviews}+ 位满意顾客` : `Based on ${totalReviews}+ happy customers`}
+                {language === 'cn'
+                  ? (product.id === '16' ? '基于 4个满意顾客' : product.id === '17' ? '基于 40+ 位满意顾客' : product.id === '19' ? '基于 11+ 位满意顾客' : '基于 10+ 位满意顾客')
+                  : (product.id === '16' ? 'Based on 4 happy customers' : product.id === '17' ? 'Based on 40+ happy customers' : product.id === '19' ? 'Based on 11+ happy customers' : 'Based on 10+ happy customers')}
               </p>
               {((product.id === '11' && productFolder === '胆大党高速婆婆盲盒') ||
                 (product.id === '12' && productFolder === '海底乐趣香薰挂饰系列') ||
@@ -2906,7 +3372,9 @@ export default function ProductDetail() {
                 </div>
                 <span className="text-2xl font-black">4.9</span>
                 <span className="text-bakery-brown/60 font-bold">
-                  {language === 'cn' ? `${totalReviews}+ 条评价` : `${totalReviews}+ Reviews`}
+                  {language === 'cn'
+                    ? (product.id === '16' ? '4个评价' : product.id === '17' ? '40+ 条评价' : product.id === '19' ? '11+ 条评价' : '10+ 条评价')
+                    : (product.id === '16' ? '4 Reviews' : product.id === '17' ? '40+ Reviews' : product.id === '19' ? '11+ Reviews' : '10+ Reviews')}
                 </span>
               </div>
               <div ref={sortMenuRef} className="relative flex items-center gap-2">
@@ -3017,14 +3485,29 @@ export default function ProductDetail() {
                         />
                       ))}
                     </div>
-                    <p className="text-bakery-brown/75 text-sm leading-relaxed mb-3">{card.text}</p>
+                    <p className={`text-bakery-brown/75 text-sm leading-relaxed mb-2 ${expandedReviewIds[card.id] ? '' : 'line-clamp-3'}`}>{card.text}</p>
+                    {card.text.length > 68 ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedReviewIds((prev) => ({ ...prev, [card.id]: !prev[card.id] }))
+                        }
+                        className="mb-3 text-xs font-bold text-pink-600 hover:text-pink-500 transition-colors"
+                      >
+                        {expandedReviewIds[card.id]
+                          ? (language === 'cn' ? '收起' : 'Show less')
+                          : (language === 'cn' ? '展开' : 'Read more')}
+                      </button>
+                    ) : (
+                      <div className="mb-3" />
+                    )}
                     <p className="text-xs font-bold text-bakery-brown/45 mb-1">{card.style}</p>
                     <p className="text-xs font-bold text-bakery-brown/45">{card.item}</p>
                   </div>
                 </article>
               ))}
             </div>
-            {product.id === '9' && sortedRatingCards.length > 8 && (
+            {(product.id === '9' || product.id === '17') && sortedRatingCards.length > 8 && (
               <div className="flex justify-center mt-8 md:mt-10">
                 <button
                   type="button"
