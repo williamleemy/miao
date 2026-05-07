@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Trophy, Star, TrendingUp, ArrowRight } from 'lucide-react';
 import { useCartStore, useLanguageStore } from '../lib/store';
 import { getCardPriceUsd } from '../lib/cardPriceUsd';
+import { SECTION_BANNER_PATHS } from '../lib/bannerPaths';
 import { MOCK_PRODUCTS } from '../lib/data';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -92,8 +93,8 @@ export default function Shop() {
   const isLimited = activeTag === 'Limited';
 
   const getBannerConfig = () => {
-    const pinguSeriesBanner = encodeURI('/banners/banner1/pingu 系列ads/ChatGPT Image May 1, 2026, 12_34_29 AM.png');
-    const allProductsBanner = encodeURI('/banners/所有产品banner/ads/ChatGPT Image May 1, 2026, 11_59_22 PM.png');
+    const pinguSeriesBanner = encodeURI('/banners/banner1/pingu 系列ads/pingu-series.png');
+    const allProductsBanner = encodeURI('/banners/所有产品banner/ads/all-products.png');
 
     if (isBestSeller) {
       return {
@@ -111,8 +112,8 @@ export default function Shop() {
       return {
         title: t('shop.newArrivalTitle'),
         subtitle: t('shop.newArrivalSubtitle'),
-        leftImg: "https://images.unsplash.com/photo-1581557991964-125469da3b8a?auto=format&fit=crop&q=80&w=600",
-        rightImg: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?auto=format&fit=crop&q=80&w=600",
+        leftImg: SECTION_BANNER_PATHS.newArrival,
+        rightImg: SECTION_BANNER_PATHS.newArrival,
         bgColor: 'bg-gradient-to-r from-bakery-mint/40 via-white to-bakery-mint/40',
         borderColor: 'border-bakery-mint',
         badge: 'NEW IN',
@@ -123,8 +124,8 @@ export default function Shop() {
       return {
         title: t('shop.limitedTitle'),
         subtitle: t('shop.limitedSubtitle'),
-        leftImg: "https://images.unsplash.com/photo-1559454403-b8fb88521f11?auto=format&fit=crop&q=80&w=600",
-        rightImg: "https://images.unsplash.com/photo-1606503153255-59d8b8b82176?auto=format&fit=crop&q=80&w=600",
+        leftImg: SECTION_BANNER_PATHS.monthlyLimited,
+        rightImg: SECTION_BANNER_PATHS.monthlyLimited,
         bgColor: 'bg-gradient-to-r from-bakery-pink-light/60 via-white to-bakery-pink-light/60',
         borderColor: 'border-bakery-pink',
         badge: 'LIMITED EDITION',
@@ -137,6 +138,42 @@ export default function Shop() {
         subtitle: t('shop.subtitle'),
         leftImg: pinguSeriesBanner,
         rightImg: pinguSeriesBanner,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'SpongeBob') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: SECTION_BANNER_PATHS.spongebobSeries,
+        rightImg: SECTION_BANNER_PATHS.spongebobSeries,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'Manor') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: SECTION_BANNER_PATHS.manorSeries,
+        rightImg: SECTION_BANNER_PATHS.manorSeries,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'Elf') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: SECTION_BANNER_PATHS.elfSeries,
+        rightImg: SECTION_BANNER_PATHS.elfSeries,
         bgColor: 'bg-bakery-pink-light/30',
         borderColor: 'border-bakery-pink-light',
         badge: null,
@@ -304,7 +341,7 @@ export default function Shop() {
                     <motion.button 
                       whileHover={{ scale: 1.1, backgroundColor: '#86efac' }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={() => addItem({ ...product, quantity: 1 })}
+                      onClick={() => addItem({ ...product, price: getCardPriceUsd(product, unitsPerUsd), quantity: 1 })}
                       className="flex items-center justify-center h-10 w-10 sm:h-14 sm:w-14 bg-bakery-mint text-bakery-brown rounded-full transition-colors shadow-md"
                       title="Add to cart"
                     >

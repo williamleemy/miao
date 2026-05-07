@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Send, MessageSquare, ChevronLeft, ChevronRight, Heart, Sparkles } from 'lucide-react';
 import { useLanguageStore, useCartStore } from '../lib/store';
 import { getCardPriceUsd } from '../lib/cardPriceUsd';
+import { SECTION_BANNER_PATHS } from '../lib/bannerPaths';
 import { MOCK_PRODUCTS, MOCK_REVIEWS, MOCK_REVIEWS_ROW2 } from '../lib/data';
 import { motion } from 'motion/react';
 import BannerBoard from '../components/BannerBoard';
@@ -204,9 +205,9 @@ function HeroCarousel() {
   const startX = useRef(0);
   const scrollLeft = useRef(0);
 
-  const homeBannerPath = encodeURI('/banners/banner1/ad/ChatGPT Image May 1, 2026, 12_14_21 AM.png');
-  const homeBannerPath2 = encodeURI('/banners/banner2/ad/ChatGPT Image May 1, 2026, 01_09_24 AM.png');
-  const homeBannerPath3 = encodeURI('/banners/banner3/ad/ChatGPT Image May 1, 2026, 01_45_03 AM.png');
+  const homeBannerPath = encodeURI('/banners/banner1/ad/home-1.png');
+  const homeBannerPath2 = encodeURI('/banners/banner2/ad/home-2.png');
+  const homeBannerPath3 = encodeURI('/banners/banner3/ad/home-3.png');
 
   const BANNERS = [
     homeBannerPath,
@@ -521,10 +522,6 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const [activeCategory, setActiveCategory] = useState('All');
-  const bestSellerBannerPath = encodeURI('/banners/人气热卖banner/ChatGPT Image May 3, 2026, 12_24_42 AM.png');
-  const newArrivalBannerPath = encodeURI('/banners/新品首发banner/ChatGPT Image May 3, 2026, 01_53_00 PM.png');
-  const monthlyLimitedBannerPath = encodeURI('/banners/本月限定banner/ChatGPT Image May 3, 2026, 02_17_06 PM.png');
-
   const categories = [
     'All', 
     'Plushies', 
@@ -654,9 +651,9 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
         {/* Section Banner Board */}
         <BannerBoard 
           src={
-            tag === 'BestSeller' ? bestSellerBannerPath :
-            tag === 'NewArrival' ? newArrivalBannerPath :
-            tag === 'Limited' ? monthlyLimitedBannerPath :
+            tag === 'BestSeller' ? SECTION_BANNER_PATHS.bestSeller :
+            tag === 'NewArrival' ? SECTION_BANNER_PATHS.newArrival :
+            tag === 'Limited' ? SECTION_BANNER_PATHS.monthlyLimited :
             tag === 'All' ? "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=1600" :
             "https://images.unsplash.com/photo-1559454403-b8fb88521f11?auto=format&fit=crop&q=80&w=1600"
           }
@@ -739,7 +736,7 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
                 <motion.button 
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => addItem({ ...item, quantity: 1 })}
+                  onClick={() => addItem({ ...item, price: getCardPriceUsd(item), quantity: 1 })}
                   className="bg-bakery-mint text-bakery-brown w-8 h-8 md:w-10 md:h-10 rounded-full font-bold text-lg hover:bg-green-300 transition-colors shadow-sm flex items-center justify-center"
                 >
                   +
@@ -896,7 +893,7 @@ function SeriesSection({ title, items, t, language, addItem, category, formatPri
                 <motion.button 
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => addItem({ ...item, quantity: 1 })}
+                  onClick={() => addItem({ ...item, price: getCardPriceUsd(item), quantity: 1 })}
                   className="bg-bakery-pink text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-pink-400 transition-colors shadow-sm"
                 >
                   +
