@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa';
 import { AuthProvider } from './contexts/AuthContext';
 import { useLanguageStore } from './lib/store';
 import Navbar from './components/Navbar';
@@ -10,7 +11,8 @@ import Checkout from './pages/Checkout';
 import ProductDetail from './pages/ProductDetail';
 import Support from './pages/Support';
 import ShippingPolicy from './pages/ShippingPolicy';
-import { Cake, Facebook, Instagram, Twitter, Home as HomeIcon, Package2, ShoppingCart, ClipboardList, UserRound, Phone, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Home as HomeIcon, Package2, ShoppingCart, ClipboardList, UserRound, Phone, MapPin } from 'lucide-react';
+import { BRAND_LOGO_SRC } from './lib/brand';
 
 function AppContent() {
   const { t } = useLanguageStore();
@@ -40,7 +42,14 @@ function AppContent() {
               {/* Brand & About */}
               <div className="col-span-1 lg:col-span-1">
                 <Link to="/" className="flex items-center gap-2 mb-4">
-                  <Cake className="h-8 w-8 text-bakery-brown" />
+                  <img
+                    src={BRAND_LOGO_SRC}
+                    alt="Miaomiaoshops"
+                    className="h-20 w-20 md:h-16 md:w-16 rounded-full object-cover shrink-0 shadow-sm ring-2 ring-bakery-pink/40"
+                    width={80}
+                    height={80}
+                    decoding="async"
+                  />
                   <span className="font-display text-2xl text-bakery-brown font-bold tracking-wider">
                     Miaomiaoshops
                   </span>
@@ -129,7 +138,36 @@ function AppContent() {
           </div>
         </footer>
       </div>
+      <FloatingSocialButtons />
       <MobileBottomNav />
+    </div>
+  );
+}
+
+function FloatingSocialButtons() {
+  const whatsappPrefill = encodeURIComponent('Hi Miaomiaoshops! I would like to know more about your products.');
+  const whatsappUrl = `https://wa.me/?text=${whatsappPrefill}`;
+
+  return (
+    <div className="fixed right-4 bottom-24 md:bottom-6 z-[9998] flex flex-col gap-3">
+      <a
+        href="https://www.instagram.com/miaomiaoshops/"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Open Instagram"
+        className="h-12 w-12 rounded-full bg-[#E1306C] text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <FaInstagram className="h-6 w-6" />
+      </a>
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Open WhatsApp"
+        className="h-12 w-12 rounded-full bg-[#25D366] text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <FaWhatsapp className="h-6 w-6" />
+      </a>
     </div>
   );
 }

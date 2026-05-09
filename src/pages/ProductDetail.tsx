@@ -766,13 +766,14 @@ export default function ProductDetail() {
     selectedAfterUsd ?? (cheapestOptionMyr ? cheapestOptionMyr.afterMyr / unitsPerUsd.MYR : null);
   const displayOptionBeforeUsd =
     selectedBeforeUsd ?? (cheapestOptionMyr ? cheapestOptionMyr.beforeMyr / unitsPerUsd.MYR : null);
+  const baseCardPriceUsd = getCardPriceUsd(product, unitsPerUsd);
   const singlePriceAfterUsd = isPinguCameraBagProduct
     ? 69.9 / unitsPerUsd.MYR
     : customSelectedPricing
       ? customSelectedPricing.afterMyr / unitsPerUsd.MYR
       : customCheapestPricing
         ? customCheapestPricing.afterMyr / unitsPerUsd.MYR
-      : product.price;
+      : baseCardPriceUsd;
   const singlePriceBeforeUsd = isPinguCameraBagProduct
     ? 79.9 / unitsPerUsd.MYR
     : customSelectedPricing
@@ -2701,13 +2702,13 @@ export default function ProductDetail() {
           en: `${product.name.en} (${selectedCustomStyle})`,
           cn: `${product.name.cn}（${selectedCustomStyle}）`,
         },
-        price: stylePricing ? stylePricing.afterMyr / unitsPerUsd.MYR : product.price,
+        price: stylePricing ? stylePricing.afterMyr / unitsPerUsd.MYR : baseCardPriceUsd,
         quantity,
       });
       return;
     }
 
-    addItem({ ...product, quantity });
+    addItem({ ...product, price: singlePriceAfterUsd, quantity });
   };
 
   const openReviewModal = () => {

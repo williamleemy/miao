@@ -91,10 +91,16 @@ export default function Shop() {
   const isBestSeller = activeTag === 'BestSeller';
   const isNewArrival = activeTag === 'NewArrival';
   const isLimited = activeTag === 'Limited';
+  const allProductsMobileBanner = encodeURI('/banners/所有产品banner/手机端ads/all-products-mobile.png');
+  const dailyLimitedMobileBanner = encodeURI('/banners/每日限量banner/手机端banner/daily-limited-mobile.png');
+  const healingSeriesMobileBanner = encodeURI('/banners/治愈系列banner/手机端ads/healing-series-mobile.png');
+  const giftPicksMobileBanner = encodeURI('/banners/礼物精选banner/手机端ads/gift-picks-mobile.png');
+  const coBrandedMobileBanner = encodeURI('/banners/联名限定款banner/手机端ads/co-branded-mobile.png');
 
   const getBannerConfig = () => {
     const pinguSeriesBanner = encodeURI('/banners/banner1/pingu 系列ads/pingu-series.png');
     const allProductsBanner = encodeURI('/banners/所有产品banner/ads/all-products.png');
+    const dailyLimitedBanner = encodeURI('/banners/每日限量banner/daily-limited-desktop.png');
 
     if (isBestSeller) {
       return {
@@ -138,6 +144,54 @@ export default function Shop() {
         subtitle: t('shop.subtitle'),
         leftImg: pinguSeriesBanner,
         rightImg: pinguSeriesBanner,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'DailyLimited') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: dailyLimitedBanner,
+        rightImg: dailyLimitedBanner,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'HealingSeries') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: SECTION_BANNER_PATHS.healingSeries,
+        rightImg: SECTION_BANNER_PATHS.healingSeries,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'LogicCake') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: SECTION_BANNER_PATHS.giftPicks,
+        rightImg: SECTION_BANNER_PATHS.giftPicks,
+        bgColor: 'bg-bakery-pink-light/30',
+        borderColor: 'border-bakery-pink-light',
+        badge: null,
+        badgeIcon: null
+      };
+    }
+    if (activeCategory === 'CoBranded') {
+      return {
+        title: getCategoryName(activeCategory),
+        subtitle: t('shop.subtitle'),
+        leftImg: SECTION_BANNER_PATHS.coBranded,
+        rightImg: SECTION_BANNER_PATHS.coBranded,
         bgColor: 'bg-bakery-pink-light/30',
         borderColor: 'border-bakery-pink-light',
         badge: null,
@@ -204,8 +258,21 @@ export default function Shop() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <BannerBoard 
           src={banner.leftImg}
+          mobileSrc={
+            activeCategory === 'All'
+              ? allProductsMobileBanner
+              : activeCategory === 'DailyLimited'
+                ? dailyLimitedMobileBanner
+                : activeCategory === 'HealingSeries'
+                  ? healingSeriesMobileBanner
+                : activeCategory === 'LogicCake'
+                  ? giftPicksMobileBanner
+                : activeCategory === 'CoBranded'
+                  ? coBrandedMobileBanner
+                : undefined
+          }
           alt="Shop Banner"
-          aspectRatio="aspect-[1913/822] md:aspect-[1913/822]"
+          aspectRatio="aspect-[430/365] md:aspect-[1913/822]"
           className="mb-12"
         />
       </div>
@@ -268,7 +335,7 @@ export default function Shop() {
         </div>
       </div>
 
-      <motion.div layout className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 lg:gap-10">
+      <motion.div layout className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-8 lg:gap-10">
         <AnimatePresence mode="popLayout">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product, index) => {
@@ -283,7 +350,7 @@ export default function Shop() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   key={product.id} 
-                  className={`bg-white rounded-[2rem] sm:rounded-[3rem] p-4 sm:p-6 shadow-md border-2 transition-all group flex flex-col relative ${
+                  className={`bg-white rounded-2xl sm:rounded-[3rem] p-1.5 sm:p-6 shadow-md border-2 transition-all group flex flex-col relative ${
                     isTop3 
                       ? 'border-bakery-yellow ring-4 ring-bakery-yellow/10 scale-105 z-10' 
                       : 'border-bakery-pink-light hover:border-pink-300'
@@ -300,7 +367,7 @@ export default function Shop() {
                     </div>
                   )}
 
-                  <Link to={`/product/${product.id}`} className="aspect-square rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden mb-4 sm:mb-6 bg-bakery-cream relative block">
+                  <Link to={`/product/${product.id}`} className="aspect-square rounded-lg sm:rounded-[2.5rem] overflow-hidden mb-2 sm:mb-6 bg-bakery-cream relative block">
                     <motion.img 
                       whileHover={{ scale: 1.1 }}
                       transition={{ duration: 0.4 }}
@@ -312,14 +379,14 @@ export default function Shop() {
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold text-bakery-brown shadow-sm">
+                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-bakery-brown shadow-sm">
                       {product.category[language]}
                     </div>
                   </Link>
                   
                   <div className="flex-1">
                     <Link to={`/product/${product.id}`} className="block group-hover:text-pink-500 transition-colors">
-                      <h3 className="text-base sm:text-2xl font-display font-black text-bakery-brown mb-1 line-clamp-1 group-hover:text-inherit transition-colors">{product.name[language]}</h3>
+                      <h3 className="text-sm sm:text-2xl font-display font-black text-bakery-brown mb-1 line-clamp-1 group-hover:text-inherit transition-colors">{product.name[language]}</h3>
                     </Link>
                     {isBestSeller && (
                       <div className="flex flex-col gap-1 mb-3">
@@ -333,10 +400,10 @@ export default function Shop() {
                         </div>
                       </div>
                     )}
-                    <p className="text-[10px] sm:text-sm text-bakery-brown/60 mb-4 line-clamp-2 font-medium">{product.description[language]}</p>
+                    <p className="text-[10px] sm:text-sm text-bakery-brown/60 mb-2 sm:mb-4 line-clamp-1 sm:line-clamp-2 font-medium">{product.description[language]}</p>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-bakery-pink-light/50">
+                  <div className="flex items-center justify-between mt-auto pt-2 sm:pt-4 border-t border-bakery-pink-light/50">
                     <span className="text-lg sm:text-3xl font-black text-pink-500">{formatPrice(getCardPriceUsd(product, unitsPerUsd))}</span>
                     <motion.button 
                       whileHover={{ scale: 1.1, backgroundColor: '#86efac' }}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Cake, Globe, Menu, X, Coins } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Globe, Menu, X, Coins } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCartStore, useLanguageStore, CURRENCIES, Currency } from '../lib/store';
+import { BRAND_LOGO_SRC } from '../lib/brand';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Navbar() {
@@ -42,7 +43,7 @@ export default function Navbar() {
   return (
     <nav className="bg-bakery-pink-light shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between min-h-24 h-24 md:min-h-16 md:h-16 items-center">
           
           {/* Left: Hamburger (Mobile) / Logo (Desktop) */}
           <div className="flex items-center flex-1">
@@ -56,8 +57,15 @@ export default function Navbar() {
 
             {/* Desktop Logo */}
             <Link to="/" className="hidden md:flex items-center gap-2" onClick={closeMenu}>
-              <Cake className="h-8 w-8 text-bakery-brown" />
-              <span className="font-display text-2xl text-bakery-brown font-bold tracking-wider hidden lg:block">
+              <img
+                src={BRAND_LOGO_SRC}
+                alt="Miaomiaoshops"
+                className="h-14 w-14 md:h-16 md:w-16 rounded-full object-cover shrink-0"
+                width={64}
+                height={64}
+                decoding="async"
+              />
+              <span className="font-display text-2xl lg:text-3xl text-bakery-brown font-bold tracking-wider hidden lg:block">
                 Miaomiaoshops
               </span>
             </Link>
@@ -67,7 +75,14 @@ export default function Navbar() {
           <div className="flex items-center justify-center flex-[2]">
             {/* Mobile Logo */}
             <Link to="/" className="md:hidden flex items-center justify-center" onClick={closeMenu}>
-              <Cake className="h-8 w-8 text-bakery-brown" />
+              <img
+                src={BRAND_LOGO_SRC}
+                alt="Miaomiaoshops"
+                className="h-20 w-20 rounded-full object-cover shrink-0 shadow-sm"
+                width={80}
+                height={80}
+                decoding="async"
+              />
             </Link>
 
             {/* Desktop Links */}

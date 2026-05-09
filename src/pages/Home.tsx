@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-bakery-pink-light overflow-hidden bg-grid-pattern">
+      <section className="relative bg-bakery-pink-light overflow-visible md:overflow-hidden bg-grid-pattern">
         {/* Floating Cute Icons */}
         <motion.div 
           animate={{ y: [0, -20, 0], rotate: [-10, 10, -10] }}
@@ -206,8 +206,11 @@ function HeroCarousel() {
   const scrollLeft = useRef(0);
 
   const homeBannerPath = encodeURI('/banners/banner1/ad/home-1.png');
+  const homeBannerMobilePath = encodeURI('/banners/banner1/手机端ads/banner1-mobile.png');
   const homeBannerPath2 = encodeURI('/banners/banner2/ad/home-2.png');
+  const homeBannerMobilePath2 = encodeURI('/banners/banner2/手机端ads/banner2-mobile.png');
   const homeBannerPath3 = encodeURI('/banners/banner3/ad/home-3.png');
+  const homeBannerMobilePath3 = encodeURI('/banners/banner3/手机端ads/banner3-mobile.png');
 
   const BANNERS = [
     homeBannerPath,
@@ -338,11 +341,11 @@ function HeroCarousel() {
   };
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 z-10">
+    <div className="relative z-10 w-screen md:w-full md:max-w-7xl left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] md:left-auto md:right-auto md:mx-auto px-0 sm:px-0 md:px-6 lg:px-8 py-0 md:py-16">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative rounded-[2.5rem] md:rounded-[4.5rem] overflow-hidden border-4 md:border-8 border-white shadow-[0_30px_100px_rgba(0,0,0,0.2)] bg-white aspect-[16/9] md:aspect-[21/9]"
+        className="relative rounded-2xl md:rounded-[4.5rem] overflow-visible md:overflow-hidden border-0 md:border-8 md:border-white shadow-none md:shadow-[0_30px_100px_rgba(0,0,0,0.2)] bg-transparent md:bg-white aspect-[430/365] md:aspect-[21/9]"
       >
         <div 
           ref={scrollRef}
@@ -357,34 +360,73 @@ function HeroCarousel() {
           className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing"
           style={{ scrollBehavior: 'smooth' }}
         >
-          {BANNERS.map((banner, index) => (
+          {BANNERS.map((banner, index) => {
+            const mobileBannerSrc = index === 0
+              ? homeBannerMobilePath
+              : index === 1
+                ? homeBannerMobilePath2
+                : index === 2
+                  ? homeBannerMobilePath3
+                  : null;
+            return (
             <div key={index} className="w-full h-full flex-shrink-0 snap-center relative">
               {bannerLinks[index] ? (
                 <Link to={bannerLinks[index]} className="block w-full h-full">
+                  {mobileBannerSrc ? (
+                    <picture>
+                      <source media="(max-width: 767px)" srcSet={mobileBannerSrc} />
+                      <img
+                        src={banner}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
+                        }}
+                        alt={`Banner ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </picture>
+                  ) : (
+                    <img
+                      src={banner}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
+                      }}
+                      alt={`Banner ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
+                </Link>
+              ) : (
+                mobileBannerSrc ? (
+                  <picture>
+                    <source media="(max-width: 767px)" srcSet={mobileBannerSrc} />
+                    <img
+                      src={banner}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
+                      }}
+                      alt={`Banner ${index + 1}`}
+                      className="w-full h-full object-cover pointer-events-none"
+                      referrerPolicy="no-referrer"
+                    />
+                  </picture>
+                ) : (
                   <img
                     src={banner}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
                     }}
                     alt={`Banner ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                     referrerPolicy="no-referrer"
                   />
-                </Link>
-              ) : (
-                <img
-                  src={banner}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = FALLBACK_BANNERS[index];
-                  }}
-                  alt={`Banner ${index + 1}`}
-                  className="w-full h-full object-cover pointer-events-none"
-                  referrerPolicy="no-referrer"
-                />
+                )
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
             </div>
-          ))}
+          );
+          })}
         </div>
         
         {/* Dots */}
@@ -660,17 +702,12 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
           alt={`${title} Banner`}
           aspectRatio={
             tag === 'BestSeller'
-              ? "aspect-[1927/816]"
+              ? "aspect-[430/365] md:aspect-[1927/816]"
               : tag === 'NewArrival'
-                ? "aspect-[1024/456]"
+                ? "aspect-[430/365] md:aspect-[1024/456]"
                 : tag === 'Limited'
-                  ? "aspect-[1914/822]"
+                  ? "aspect-[430/365] md:aspect-[1914/822]"
                   : undefined
-          }
-          imageClassName={
-            tag === 'NewArrival' || tag === 'Limited'
-              ? "object-contain group-hover:scale-100"
-              : undefined
           }
           className="mb-10"
         />
@@ -710,9 +747,9 @@ function ProductSection({ title, items, t, language, addItem, tag, formatPrice, 
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -10 }}
-              className="min-w-[200px] md:min-w-[280px] bg-white rounded-2xl md:rounded-[2.5rem] p-3 md:p-6 shadow-md border-2 border-bakery-pink-light transition-shadow hover:shadow-xl flex flex-col snap-start"
+              className="min-w-[11.75rem] max-w-[13rem] w-[50vw] shrink-0 sm:w-auto sm:max-w-none sm:min-w-[200px] md:min-w-[280px] bg-white rounded-2xl md:rounded-[2.5rem] p-2.5 md:p-6 shadow-md border-2 border-bakery-pink-light transition-shadow hover:shadow-xl flex flex-col snap-start"
             >
-              <Link to={`/product/${item.id}`} className="aspect-square rounded-xl md:rounded-[2rem] overflow-hidden mb-3 md:mb-6 bg-bakery-pink-light/30 block">
+              <Link to={`/product/${item.id}`} className="aspect-square rounded-xl md:rounded-[2rem] overflow-hidden mb-2.5 md:mb-6 bg-bakery-pink-light/30 block">
                 <motion.img 
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
@@ -864,9 +901,9 @@ function SeriesSection({ title, items, t, language, addItem, category, formatPri
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               whileHover={{ y: -5 }}
-              className="min-w-[240px] sm:min-w-[280px] md:min-w-[320px] bg-bakery-cream rounded-2xl md:rounded-3xl p-3 md:p-4 shadow-md border-2 border-bakery-yellow snap-start flex flex-col relative overflow-hidden"
+              className="min-w-[12.25rem] max-w-[13.5rem] w-[52vw] shrink-0 sm:w-auto sm:max-w-none sm:min-w-[240px] md:min-w-[320px] bg-bakery-cream rounded-2xl md:rounded-3xl p-2.5 md:p-4 shadow-md border-2 border-bakery-yellow snap-start flex flex-col relative overflow-hidden"
             >
-              <Link to={`/product/${item.id}`} className="aspect-square rounded-2xl overflow-hidden mb-4 bg-white relative block">
+              <Link to={`/product/${item.id}`} className="aspect-square rounded-xl md:rounded-2xl overflow-hidden mb-3 md:mb-4 bg-white relative block">
                 <motion.img 
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}

@@ -219,10 +219,10 @@ export const translations = {
         spongebob: '比奇堡系列',
         pingu: 'Pingu 系列',
         manor: '微缩生活场景系列',
-        elf: '精灵图鉴系列',
+        elf: '其他系列',
         dailyLimited: '每日限量',
         healingSeries: '治愈系列',
-        logicCake: '逻辑碎片蛋糕',
+        logicCake: '礼物精选',
         coBranded: '联名限定款'
       }
     },
